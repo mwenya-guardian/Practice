@@ -1,0 +1,32 @@
+ body{
+  display: flex;
+  justify-content: center;
+  background-color: burlywood;
+}
+.headerClass{
+  color:brown;
+  text-decoration: wavy;
+  justify-content: center;
+  align-items: center;
+
+  font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+input{
+  border: none;
+  border-bottom: 2px solid black;
+  outline: none;
+  background: transparent;
+}
+
+.wrapper{
+  display: flex;
+  width: 400px;
+  height: 405px;
+  align-items: center;
+  overflow: hidden;
+  text-decoration: wavy;
+  background: transparent;
+  border: 2px solid lightblue;
+  border-radius: 30px;
+}
