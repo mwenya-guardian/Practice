@@ -1,32 +1,40 @@
+ header{
+  top: 0;
+  width: 1000%;
+  width: 100%;
+  padding: 20px 100px;
+  background-color: rgb(2, 84, 99);
+ }
  body{
-  display: flex;
+  color: white;
   justify-content: center;
-  background-color: burlywood;
+  background-image:url("C:/Users/Lenovo/Downloads/Walpapers/webPage.jpg");
+  /*background-color: burlywood;*/
 }
 .headerClass{
-  color:brown;
+  display: flex;
   text-decoration: wavy;
   justify-content: center;
   align-items: center;
-
   font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 input{
   border: none;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid white;
   outline: none;
   background: transparent;
 }
 
-.wrapper{
+.wrapper{   
   display: flex;
   width: 400px;
   height: 405px;
-  align-items: center;
+  justify-content: center;
   overflow: hidden;
   text-decoration: wavy;
   background: transparent;
+  backdrop-filter: blur(10px);
   border: 2px solid lightblue;
   border-radius: 30px;
 }

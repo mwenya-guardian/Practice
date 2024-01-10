@@ -1,8 +1,9 @@
-console.log("running!!!");
+console.log("running!!!", __dirname);
 const { process_params } = require('express/lib/router');
 const express = require('express');
 const app = express();
 const port = 3000;
+const path = require('path');
 
 //Sample data
 let books = [
@@ -13,10 +14,18 @@ let me = {
   id:{is: "This"},
   them: {you:"that"}
 }
-
-app.use(express.json());
+let currentPath = "C:";
+let initialPath = "MG-Movies-Series-New folder-My Teen Romantic Copmedy Went Wrong As I Expected-S2";
+  initialPath =  initialPath.split("-");
+  console.log(initialPath);
+  initialPath.forEach(sub => {
+    console.log(sub);
+  currentPath = path.join(currentPath, sub);    
+  });
+app.use("/S2", express.static(currentPath));
+//Json responses
 app.get('/books', (req, res)=> {
-  res.json(books.Me = me);
+  res.json(books);
 });
 app.post('/books', (req, res)=> {
   const newBook = req.body;
@@ -34,8 +43,16 @@ app.delete('/books/:id', (req, res)=> {
   books = books.filter(book => book.id !== bookId);
   res.sendStatus(204);
 });
+//Respones of a certain file type
+app.get('/videos/:episode', (req, res)=> {
+  let episode = parseInt(req.params.episode);
+  episode = episode.length > 1? episode: "0"+ episode + " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
+  const filePath = path.join(currentPath, episode);
+  console.log(filePath);
+  res.sendFile(filePath);
+});
 app.listen(port, ()=> {
-  console.log('REST API for book management is listening at http://localhost:${port}');
+  console.log('REST API for book management is listening at http://localhost:' + port);
 });
 
 
