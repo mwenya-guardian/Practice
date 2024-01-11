@@ -8,7 +8,7 @@
  body{
   color: white;
   justify-content: center;
-  background-image:url("C:/Users/Lenovo/Downloads/Walpapers/webPage.jpg");
+  background-image:url("http://192.168.231.21:3000/style/background-image");
   /*background-color: burlywood;*/
 }
 .headerClass{

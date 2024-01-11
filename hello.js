@@ -45,12 +45,28 @@ app.delete('/books/:id', (req, res)=> {
 });
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
-  let episode = parseInt(req.params.episode);
-  episode = episode.length > 1? episode: "0"+ episode + " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
+  let episode = parseInt(req.params.episode) + "";
+  episode = episode.length > 1? episode: ("0"+ episode);
+  episode += " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
   const filePath = path.join(currentPath, episode);
-  console.log(filePath);
   res.sendFile(filePath);
 });
+
+app.get('/', (req, res)=> {
+  const filePath = path.join(__dirname, "Hello.html");
+  res.sendFile(filePath);
+});
+app.get('/style', (req, res)=> {
+  const filePath = path.join(__dirname, "hello.css");
+  res.sendFile(filePath);
+});
+
+app.get('/style/backgroung-image', (req, res)=> {
+  const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
+  res.sendFile(filePath);
+});
+
+//Listening to the port
 app.listen(port, ()=> {
   console.log('REST API for book management is listening at http://localhost:' + port);
 });
