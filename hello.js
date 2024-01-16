@@ -61,7 +61,7 @@ app.get('/style', (req, res)=> {
   res.sendFile(filePath);
 });
 
-app.get('/style/backgroung-image', (req, res)=> {
+app.get('/style/back', (req, res)=> {
   const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
   res.sendFile(filePath);
 });
