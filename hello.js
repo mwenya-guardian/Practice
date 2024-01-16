@@ -1,4 +1,3 @@
-console.log("running!!!", __dirname);
 const { process_params } = require('express/lib/router');
 const express = require('express');
 const app = express();
@@ -46,10 +45,14 @@ app.delete('/books/:id', (req, res)=> {
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
   let episode = parseInt(req.params.episode) + "";
+  if(parseInt(req.params.episode) == 100){
+    res.sendFile(path.join(__dirname, "Trevor Noah Son of Patricia 1.mp4"));
+  } else{
   episode = episode.length > 1? episode: ("0"+ episode);
   episode += " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
   const filePath = path.join(currentPath, episode);
   res.sendFile(filePath);
+  }
 });
 
 app.get('/', (req, res)=> {

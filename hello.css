@@ -8,8 +8,8 @@
  body{
   color: white;
   justify-content: center;
-  background-image:url("http://192.168.231.21:3000/style/back");
   background-image: url("http://localhost:3000/style/back");
+  background-image: url("http://192.168.231.21:3000/style/back");
   /*background-color: burlywood;*/
 }
 .headerClass{
@@ -30,7 +30,7 @@ input{
 .wrapper{   
   display: flex;
   width: 400px;
-  height: 405px;
+  height: 105px;
   justify-content: center;
   overflow: hidden;
   text-decoration: wavy;
@@ -39,12 +39,17 @@ input{
   border: 2px solid lightblue;
   border-radius: 30px;
 }
-.wrap{   
-  /*display: flex;
-  justify-content: center;
-  backdrop-filter: blur(10px);*/
+.wrap{
+  width: 100%;
   background: fixed rgb(2, 84, 99);
+  padding: 1px 1px;
   overflow: hidden;
   border: 2px solid lightblue;
   border-radius: 30px;
+}
+
+fonts{
+  font-size: 100;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  color: black;
 }
