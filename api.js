@@ -4,24 +4,68 @@ const app = express();
 const port = 3000;
 const path = require('path');
 
+let currentPath = "C:";
+let initialPath = "MG-Movies-Series-New folder-My Teen Romantic Copmedy Went Wrong As I Expected-S2";
+  initialPath = initialPath.split("-");
+  initialPath.forEach(sub => {
+              currentPath = path.join(currentPath, sub);    
+              });
+//Prepares express to handle static files requests
+app.use("/S2", express.static(currentPath));
+//Home page
+app.get('/', (req, res)=> {
+  const filePath = path.join(__dirname, "index.html");
+  res.sendFile(filePath);
+});
+//CSS stylesheet
+app.get('/style', (req, res)=> {
+  const filePath = path.join(__dirname, "style.css");
+  res.sendFile(filePath);
+});
+//FrontEnd javascript
+app.get('/script', (req, res) => {
+  const filePath = path.join(__dirname, "script.js");
+  res.sendFile(path);
+});
+//Background image
+app.get('/style/back', (req, res)=> {
+  const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
+  res.sendFile(filePath);
+});
+
+//Respones of a certain file type
+app.get('/videos/:episode', (req, res)=> {
+  let episode = parseInt(req.params.episode) + "";
+  if(parseInt(req.params.episode) == 100){
+    res.sendFile(path.join(__dirname, "Trevor Noah Son of Patricia 1.mp4"));
+  } else{
+  episode = episode.length > 1? episode: ("0"+ episode);
+  episode += " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
+  const filePath = path.join(currentPath, episode);
+  res.sendFile(filePath);
+  }
+});
+
+//Listening to the port
+app.listen(port, ()=> {
+  console.log('REST API for book management is listening at http://localhost:' + port);
+});
+
+
+
+
+
+
+
+
+//---------------------------------------------------------------------------------
+//Previuos api functions
+//---------------------------------------------------------------------------------
 //Sample data
 let books = [
   {id: 1, title: "Book 1", author:"Author 1"},
   {id: 1, title: "Book 1", author:"Author 1"}
 ]
-let me = {
-  id:{is: "This"},
-  them: {you:"that"}
-}
-let currentPath = "C:";
-let initialPath = "MG-Movies-Series-New folder-My Teen Romantic Copmedy Went Wrong As I Expected-S2";
-  initialPath =  initialPath.split("-");
-  console.log(initialPath);
-  initialPath.forEach(sub => {
-    console.log(sub);
-  currentPath = path.join(currentPath, sub);    
-  });
-app.use("/S2", express.static(currentPath));
 //Json responses
 app.get('/books', (req, res)=> {
   res.json(books);
@@ -42,39 +86,6 @@ app.delete('/books/:id', (req, res)=> {
   books = books.filter(book => book.id !== bookId);
   res.sendStatus(204);
 });
-//Respones of a certain file type
-app.get('/videos/:episode', (req, res)=> {
-  let episode = parseInt(req.params.episode) + "";
-  if(parseInt(req.params.episode) == 100){
-    res.sendFile(path.join(__dirname, "Trevor Noah Son of Patricia 1.mp4"));
-  } else{
-  episode = episode.length > 1? episode: ("0"+ episode);
-  episode += " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
-  const filePath = path.join(currentPath, episode);
-  res.sendFile(filePath);
-  }
-});
-
-app.get('/', (req, res)=> {
-  const filePath = path.join(__dirname, "index.html");
-  res.sendFile(filePath);
-});
-app.get('/style', (req, res)=> {
-  const filePath = path.join(__dirname, "hello.css");
-  res.sendFile(filePath);
-});
-
-app.get('/style/back', (req, res)=> {
-  const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
-  res.sendFile(filePath);
-});
-
-//Listening to the port
-app.listen(port, ()=> {
-  console.log('REST API for book management is listening at http://localhost:' + port);
-});
-
-
 
 
 

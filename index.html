@@ -4,7 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style">
   <title>Hello</title>
-  <!--<script src="hello.js"> </script>-->
+  <script src="script"> </script>
 
 <body>
 <header>
@@ -23,17 +23,5 @@
     <div class="wrap" id="videos">
       <p class ="fonts"> What is this::<a href="videos/100"> The Videos </a></p>
     </div>
-    <script>
-      function getVideo(){
-        event.preventDefault();
-        let num = document.getElementById("values").value;
-        path = "videos/" + num;
-        document.getElementById("videos").innerHTML = "<video width= 100% height=\" 600\" preload controls> " + 
-                "<source src=\"" + "videos/" + num + "\" type=\"video/mp4\"> " +
-                "<source src=\"" + path + "\" type=\"video/mp4\">" +
-                "<p> <a href=\"title\"></a></p>" +
-                "</video>";
-      }
-    </script>
 </body>
 </html>
