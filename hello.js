@@ -56,7 +56,7 @@ app.get('/videos/:episode', (req, res)=> {
 });
 
 app.get('/', (req, res)=> {
-  const filePath = path.join(__dirname, "Hello.html");
+  const filePath = path.join(__dirname, "index.html");
   res.sendFile(filePath);
 });
 app.get('/style', (req, res)=> {

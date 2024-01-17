@@ -8,8 +8,7 @@
  body{
   color: white;
   justify-content: center;
-  background-image: url("http://localhost:3000/style/back");
-  background-image: url("http://192.168.231.21:3000/style/back");
+  background-image: url("style/back");
   /*background-color: burlywood;*/
 }
 .headerClass{
