@@ -25,18 +25,27 @@ app.get('/style', (req, res)=> {
 //FrontEnd javascript
 app.get('/script', (req, res) => {
   const filePath = path.join(__dirname, "script.js");
-  res.sendFile(path);
+  res.sendFile(filePath);
 });
 //Background image
 app.get('/style/back', (req, res)=> {
   const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
   res.sendFile(filePath);
 });
-
+//Post data retrieval
+app.post('/find', (req, res) =>{
+  //let request = JSON.parse(req.body);
+  //books.push(request);
+  console.log("POSTED", books, req);
+  res.json(books);
+});
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
   let episode = parseInt(req.params.episode) + "";
-  if(parseInt(req.params.episode) == 100){
+  if(parseInt(req.params.episode) == "00"){
+    res.sendFile("C:\\Users\\Lenovo\\Downloads\\videos\\Windows\\Microsoft Excel Tutorial for Beginners - Full Course.mp4");
+  }
+  else if(parseInt(req.params.episode) == 100){
     res.sendFile(path.join(__dirname, "Trevor Noah Son of Patricia 1.mp4"));
   } else{
   episode = episode.length > 1? episode: ("0"+ episode);
@@ -48,7 +57,7 @@ app.get('/videos/:episode', (req, res)=> {
 
 //Listening to the port
 app.listen(port, ()=> {
-  console.log('REST API for book management is listening at http://localhost:' + port);
+  console.log('REST API is listening at http://localhost:' + port);
 });
 
 
