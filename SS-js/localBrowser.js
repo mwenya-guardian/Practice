@@ -1,22 +1,26 @@
 const puppeteer = require('puppeteer');
-let webContent = undefined;
+let flag = false;
 webContent = ( async() => {
-  const browser = await puppeteer.launch({ignoreHTTPSErrors: true,});
+  const browser = await puppeteer.launch({args: ['--ignore-certificate-errors'],});
   const page = await browser.newPage();
-  await page.goto('https://localhost:3000/');
+  await page.goto('file:///C://');
 
   //Get the html response from the web site
-  const htmlContent = await page.content();
-  //console.log(htmlContent);
-  //close browser
+  const htmlContent = await page.content().then((pageContent)=>{
+    flag = true;
+    return pageContent;
+  });
+  //Close browser
   await browser.close();
   return htmlContent;
   }
-)().then((htmlContent)=>{
-  return htmlContent;
-});
+)();
   
-while(webContent == undefined);
-console.log(webContent);
+while(true){
+  if(flag){
+  console.log(webContent);
+  break;
+  }
+}
 
 //module.exports = { webContent }
