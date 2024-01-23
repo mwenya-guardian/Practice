@@ -1,14 +1,15 @@
  header{
   top: 0;
-  width: 1000%;
-  width: 100%;
   padding: 20px 100px;
   background-color: rgb(2, 84, 99);
  }
  body{
+  width: auto;
+  height: auto;
   color: white;
   justify-content: center;
   background-image: url("style/back");
+  background-size: auto;
   /*background-color: burlywood;*/
 }
 .headerClass{
@@ -28,7 +29,7 @@ input{
 
 .wrapper{   
   display: flex;
-  width: 400px;
+  width: 100%;
   height: 105px;
   justify-content: center;
   overflow: hidden;

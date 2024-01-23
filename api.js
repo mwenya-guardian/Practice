@@ -1,11 +1,14 @@
-const { webContent } = "fdf";// require('./SS-js/localBrowser.js');
-const { process_params } = require('express/lib/router');
+//const { webContent } = require('./SS-js/localBrowser.js');
+//const { process_params } = require('express/lib/router');
+const puppeteer = require('puppeteer');
 const express = require('express');
 const https = require('https');
+const http = require('http');
+const httpApp = express();
 const path = require('path');
 const fs = require('fs');
 const app = express();
-const port = 3000;
+const port = 443;
 
 //Access the https cetification and key
 const options = {
@@ -13,7 +16,6 @@ const options = {
   cert: fs.readFileSync('certification/cert.pem'),
   passphrase: 'guardian1',
 }
-
 //Create an https encryted server
 const server = https.createServer(options, app);
 
@@ -24,8 +26,15 @@ let initialPath = "MG-Movies-Series-New folder-My Teen Romantic Copmedy Went Wro
   initialPath.forEach(sub => {
               currentPath = path.join(currentPath, sub);    
               });
+
 //Prepares express to handle static files requests
 app.use("/S2", express.static(currentPath));
+
+//Redirecting all the http request to the https server
+httpApp.get('*', (req, res) =>{
+    res.redirect('https://' + req.headers.host + req.url);
+});
+
 //Home page
 app.get('/', (req, res)=> {
   const filePath = path.join(__dirname, "Web\\index.html");
@@ -54,9 +63,50 @@ app.post('/find', (req, res) =>{
   res.json(books);
 });
 // Testing puppteer
-app.get('/pup', (req, res) =>{
-  console.log("ppppp");
-  res.json(webContent);
+app.get('/file*', async (req, res) =>{
+    const browser = await puppeteer.launch({args: ['--ignore-certificate-errors'],});
+    const page = await browser.newPage();
+    let fileURL = 'file:///C://';
+    if(req.url !== '/file'){
+      fileURL = fileURL + req.url.replace('/file/', '');
+    } //else if(req.url !== '/file/Z'){
+        //fileURL = fileURL.replace('C'); + req.url.replace('/file/Z', '');
+      //}
+    if(req.url.indexOf('.') >= 0){
+      const filePath = fileURLToPath(fileURL);
+      console.log(filePath);
+      res.sendFile(filePath);
+    } else{
+      await page.goto(fileURL);
+      //Get the html response from the web site
+      let htmlContent = await page.content();
+      let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
+      htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
+      templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
+      await fs.writeFileSync('files/temp.html',templateFile);
+      res.sendFile(path.join(__dirname, "\\files\\temp.html"));
+      console.log(fileURL);
+    }
+    //Close browser
+    let timer;
+    function startTimer(minutes){
+      const delay = minutes * 60 * 1000;
+      return new Promise((resolve, rejects) => {
+        timer = setTimeout(() => {
+          resolve();
+        }, delay);
+      });
+    }
+    function restTimer(){
+      clearTimeout(timer);
+      startTimer(20);
+    }
+    startTimer(20).then(() =>{
+      browser.close().then(()=>{
+        console.log('Browser closed');
+      });
+    });
+    restTimer();
 });
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
@@ -74,6 +124,9 @@ app.get('/videos/:episode', (req, res)=> {
   }
 });
 
+http.createServer(httpApp).listen(80, () =>{
+  console.log("Redirecting http requests to https");
+});
 //Listening to the port
 server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
@@ -87,7 +140,7 @@ server.listen(port, ()=> {
 
 
 //---------------------------------------------------------------------------------
-//Previuos api functions
+//Previous api functions
 //---------------------------------------------------------------------------------
 //Sample data
 let books = [
@@ -126,6 +179,9 @@ app.delete('/books/:id', (req, res)=> {
 //Previuos function definations
 //---------------------------------------------------------------------------------
 const readline =  require('readline');
+const { url } = require('inspector');
+const { fileURLToPath } = require('url');
+const { rejects } = require('assert');
 const req = readline.createInterface({
   input: process.stdin,
   output: process.stdout
