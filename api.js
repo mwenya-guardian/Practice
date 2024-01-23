@@ -1,5 +1,3 @@
-//const { webContent } = require('./SS-js/localBrowser.js');
-//const { process_params } = require('express/lib/router');
 const puppeteer = require('puppeteer');
 const express = require('express');
 const https = require('https');
@@ -131,7 +129,6 @@ http.createServer(httpApp).listen(80, () =>{
 server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
-
 
 
 
