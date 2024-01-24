@@ -106,22 +106,9 @@ app.get('/file*', async (req, res) =>{
     });
     restTimer();
 });
-//Respones of a certain file type
-app.get('/videos/:episode', (req, res)=> {
-  let episode = parseInt(req.params.episode) + "";
-  if(parseInt(req.params.episode) == "00"){
-    res.sendFile("C:\\Users\\Lenovo\\Downloads\\videos\\Windows\\Microsoft Excel Tutorial for Beginners - Full Course.mp4");
-  }
-  else if(parseInt(req.params.episode) == 100){
-    res.sendFile(path.join(__dirname, "video\\Trevor Noah Son of Patricia 1.mp4"));
-  } else{
-  episode = episode.length > 1? episode: ("0"+ episode);
-  episode += " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
-  const filePath = path.join(currentPath, episode);
-  res.sendFile(filePath);
-  }
-});
 
+//-------------------------------------
+//Redirecting http requests to https
 http.createServer(httpApp).listen(80, () =>{
   console.log("Redirecting http requests to https");
 });
@@ -129,9 +116,6 @@ http.createServer(httpApp).listen(80, () =>{
 server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
-
-
-
 
 
 
