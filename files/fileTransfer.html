@@ -65,6 +65,7 @@ function start(location) {
   header.innerText = header.innerText.replace("LOCATION", location);
 
   document.getElementById("title").innerText = header.innerText;
+  updateHeader();
 }
 
 function onHasParentDirectory() {
@@ -131,9 +132,36 @@ function onLoad() {
   addHandlers(document.getElementById('nameColumnHeader'), 0);
   addHandlers(document.getElementById('sizeColumnHeader'), 1);
   addHandlers(document.getElementById('dateColumnHeader'), 2);
+  updateHeader();
 }
 
 window.addEventListener('DOMContentLoaded', onLoad);
+
+//--------------------------------------------------------------
+//Update Header Function
+//--------------------------------------------------------------
+async function updateHeader(){
+  let parentElement = document.getElementById("header");
+  let urlPath = window.location.pathname;
+  document.getElementById("home").setAttribute('href', window.location.protocol + "//" + window.location.host);
+  for(let id = 1; id < urlPath.split("/").length -1; id++){
+     let newElement = document.createElement("a");
+     let tempPath = '', pathName;
+      for(let count = 0; count <= id; count++){
+        tempPath += urlPath.split("/")[count] +  "/";
+        pathName = urlPath.split("/")[id] + "\\";
+        console.log( tempPath + ":::" + pathName + ":::" + urlPath.split("/") + ":::" + urlPath.split("/").length + ":::" + urlPath);
+      }
+        tempPath = window.location.protocol + "//" + window.location.host + tempPath;
+        newElement.setAttribute("href",tempPath);
+        newElement.setAttribute("id",'' + id);
+        newElement.textContent = pathName;
+         // if(id > 1){
+         //   parentElement = await document.getElementById('' + id);
+         // }
+  await parentElement.appendChild(newElement);
+  }
+};
 </script>
 
 <style>
@@ -198,7 +226,7 @@ window.addEventListener('DOMContentLoaded', onLoad);
   }
 </style>
 </head>
-<body>
+<a>
 <script>"use strict";
 // Copyright 2012 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
@@ -272,7 +300,7 @@ class LoadTimeData{
 </script>
 <script>
 loadTimeData.data = {
-  "header":"Index of https://localhost/file/LOCATION",
+  "header":"LOCATION",
   "headerDateModified":"Date modified",
   "headerName":"Name",
   "headerSize":"Size",
@@ -281,7 +309,8 @@ loadTimeData.data = {
   "textdirection":"ltr"};
 </script>
 
-<h1 id="header">Index of C:\\</h1>
+<h1 id="header">Index of C:\\ </h1>
+<h2><a id="home">Home</a></h2>
 
 <div id="parentDirLinkBox" style="display:none">
   <a id="parentDirLink" class="icon up">

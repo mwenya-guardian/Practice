@@ -1,12 +1,14 @@
 const puppeteer = require('puppeteer');
 const express = require('express');
+const { fileURLToPath } = require('url');
 const https = require('https');
 const http = require('http');
-const httpApp = express();
 const path = require('path');
+const httpApp = express();
 const fs = require('fs');
 const app = express();
-const port = 443;
+const port = 3;
+const httpPort = 2;
 
 //Access the https cetification and key
 const options = {
@@ -30,7 +32,7 @@ app.use("/S2", express.static(currentPath));
 
 //Redirecting all the http request to the https server
 httpApp.get('*', (req, res) =>{
-    res.redirect('https://' + req.headers.host + req.url);
+    res.redirect('https://' + String(req.headers.host).split(":")[0] +":" + port + req.url);
 });
 
 //Home page
@@ -53,58 +55,32 @@ app.get('/style/back', (req, res)=> {
   const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
   res.sendFile(filePath);
 });
-//Post data retrieval
-app.post('/find', (req, res) =>{
-  //let request = JSON.parse(req.body);
-  //books.push(request);
-  console.log("POSTED");
-  res.json(books);
-});
 // Testing puppteer
 app.get('/file*', async (req, res) =>{
     const browser = await puppeteer.launch({args: ['--ignore-certificate-errors'],});
     const page = await browser.newPage();
     let fileURL = 'file:///C://';
-    if(req.url !== '/file'){
-      fileURL = fileURL + req.url.replace('/file/', '');
-    } //else if(req.url !== '/file/Z'){
-        //fileURL = fileURL.replace('C'); + req.url.replace('/file/Z', '');
-      //}
-    if(req.url.indexOf('.') >= 0){
-      const filePath = fileURLToPath(fileURL);
-      console.log(filePath);
-      res.sendFile(filePath);
-    } else{
-      await page.goto(fileURL);
-      //Get the html response from the web site
-      let htmlContent = await page.content();
-      let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
-      htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
-      templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
-      await fs.writeFileSync('files/temp.html',templateFile);
-      res.sendFile(path.join(__dirname, "\\files\\temp.html"));
-      console.log(fileURL);
-    }
+      if(req.url !== '/file'){
+        fileURL = fileURL + req.url.replace('/file/', '');
+      } 
+        if(req.url.indexOf('.') >= 0){
+          const filePath = fileURLToPath(fileURL);
+          console.log(filePath);
+          res.sendFile(filePath);
+        } else{
+            await page.goto(fileURL);
+            //Get the html response from the web site
+            let htmlContent = await page.content();
+            let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
+              htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
+              templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
+            await fs.writeFileSync('files/temp.html',templateFile);
+            res.sendFile(path.join(__dirname, "\\files\\temp.html"));
+          console.log(fileURL);
+        }
     //Close browser
-    let timer;
-    function startTimer(minutes){
-      const delay = minutes * 60 * 1000;
-      return new Promise((resolve, rejects) => {
-        timer = setTimeout(() => {
-          resolve();
-        }, delay);
-      });
-    }
-    function restTimer(){
-      clearTimeout(timer);
-      startTimer(20);
-    }
-    startTimer(20).then(() =>{
-      browser.close().then(()=>{
-        console.log('Browser closed');
-      });
-    });
-    restTimer();
+    await browser.close();
+    
 });
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
@@ -121,18 +97,16 @@ app.get('/videos/:episode', (req, res)=> {
   res.sendFile(filePath);
   }
 });
-
-http.createServer(httpApp).listen(80, () =>{
-  console.log("Redirecting http requests to https");
+app.use(express('body-parser'));
+app.use(express.json());
+//Post data retrieval
+app.post('/find', (req, res) =>{
+  let request = req.body;
+  books.response = request;
+  console.log("POSTED");
+  console.log(request);
+  res.json(books);
 });
-//Listening to the port
-server.listen(port, ()=> {
-  console.log('REST API is listening at https://localhost:' + port);
-});
-
-
-
-
 
 
 
@@ -140,10 +114,10 @@ server.listen(port, ()=> {
 //Previous api functions
 //---------------------------------------------------------------------------------
 //Sample data
-let books = [
-  {id: 1, title: "Book 1", author:"Author 1"},
-  {id: 1, title: "Book 1", author:"Author 1"}
-]
+let books = {
+ data: {id: 1, title: "Book 1", author:"Author 1"},
+ datat: {id: 1, title: "Book 1", author:"Author 1"}
+}
 //Json responses
 app.get('/books', (req, res)=> {
   res.json(books);
@@ -167,69 +141,14 @@ app.delete('/books/:id', (req, res)=> {
 
 
 
-
-
-
-
-
 //---------------------------------------------------------------------------------
-//Previuos function definations
+//Listening
 //---------------------------------------------------------------------------------
-const readline =  require('readline');
-const { url } = require('inspector');
-const { fileURLToPath } = require('url');
-const { rejects } = require('assert');
-const req = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
+//http-https Redirection
+http.createServer(httpApp).listen(httpPort, () =>{
+  console.log("Redirecting http requests to https");
 });
-
-function sortAlg(arr){
-  if(!Array.isArray(arr))
-    return;
-  let index = 0, temp = 0, tempIndex = 0;
-    while(index <= arr.length - 1){
-      temp = arr[index];
-      tempIndex = index;
-      for(let i = index; i < arr.length - 1; i++){
-        if(temp > arr[i]){
-          temp = arr[i];
-          tempIndex = i;
-        }
-      }
-    } 
-}
-function BinarySearch(arr, target){
-  //if(!Array.isArray(arr))
-    //  return "Here";
-  if(sortAlg(arr) == undefined)
-    return -1;
-  let begin = 0, end = arr.length - 1;
-  while(begin < end){
-    if(target === arr[(end + begin)/2]){
-      return (end + begin)/2;
-    }
-    else if(target > arr[(end + begin)/2]) {
-      begin = (end + begin)/2;
-    }
-    else if(target < arr[(end + begin)/2]) {
-      end = (end + begin)/2; 
-    }
-    else {
-      return -1;
-    }
-  }
-  return -1;
-}
-
-function toNumber(arr){
- if(!Array.isArray(arr))
-    return;
-  for(let i = 0; i < arr.length; i++){
-    arr[i] = parseFloat(arr[i]);
-  }
-  return arr.forEach(function (value){
-              if(isNaN(value))
-                return NaN;
-              });
-}
+//Listening to the port
+server.listen(port, ()=> {
+  console.log('REST API is listening at https://localhost:' + port);
+});

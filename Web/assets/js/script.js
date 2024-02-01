@@ -12,26 +12,19 @@ function getVideo(){
 function postRequest(){
   let dataInput = document.getElementById("target").value
   let result = 0;
-  fetch('/find', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-        data: dataInput
+      fetch('/find', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      body: JSON.stringify({ data: dataInput,})
     })
-  })
-    .then(response => {
-      response.json();
-      dataInput = response;
-      result = response.json();
-  })
-    .then(data => { 
-      console.log('Data sent', data);
-  })
-    .catch(error => {
-        console.error('not sent', error);
-  });
-        document.getElementById("borders").innerHTML = dataInput + " ###  " 
-        + result + " ### " + JSON.stringify({data: dataInput}) ;
+      .then(async data => { 
+        result = await data.json();
+        console.log('Data sent', result);
+        document.getElementById("borders").innerHTML = "### Result: " 
+        + result.response.data + " ### "
+      })
+        .catch(error => {
+          console.error('not sent', error);
+        });
+    ;
 }
