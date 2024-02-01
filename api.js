@@ -82,6 +82,7 @@ app.get('/file*', async (req, res) =>{
     await browser.close();
     
 });
+
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
   let episode = parseInt(req.params.episode) + "";
@@ -107,6 +108,18 @@ app.post('/find', (req, res) =>{
   console.log(request);
   res.json(books);
 });
+
+//-------------------------------------
+//Redirecting http requests to https
+http.createServer(httpApp).listen(80, () =>{
+  console.log("Redirecting http requests to https");
+});
+//Listening to the port
+server.listen(port, ()=> {
+  console.log('REST API is listening at https://localhost:' + port);
+});
+
+>>>>>>> db6bdf7add5ed4865a27732b0001a8d1e78afdb3
 
 
 
