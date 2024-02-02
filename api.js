@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const { fork } = require('child_process');
 const express = require('express');
 const { fileURLToPath } = require('url');
 const https = require('https');
@@ -9,7 +9,7 @@ const fs = require('fs');
 const app = express();
 const port = 3001;
 const httpPort = 3000;
-
+let puppeteerChildProcess = {};
 //Access the https cetification and key
 const options = {
   key: fs.readFileSync('certification/key.pem'),
@@ -57,30 +57,37 @@ app.get('/style/back', (req, res)=> {
 });
 // Testing puppteer
 app.get('/file*', async (req, res) =>{
-    const browser = await puppeteer.launch({args: ['--ignore-certificate-errors'],});
-    const page = await browser.newPage();
-    let fileURL = 'file:///C://';
-      if(req.url !== '/file'){
-        fileURL = fileURL + req.url.replace('/file/', '');
-      } 
-        if(req.url.indexOf('.') >= 0){
-          const filePath = fileURLToPath(fileURL);
-          console.log(filePath);
-          res.sendFile(filePath);
-        } else{
-            await page.goto(fileURL);
-            //Get the html response from the web site
-            let htmlContent = await page.content();
-            let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
-              htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
-              templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
-            await fs.writeFileSync('files/temp.html',templateFile);
-            res.sendFile(path.join(__dirname, "\\files\\temp.html"));
-          console.log(fileURL);
-        }
-    //Close browser
-    await browser.close();
-    
+  let fileURL = 'file:///C://';
+    if(!('connected' in puppeteerChildProcess))
+      puppeteerChildProcess = await fork(path.join(__dirname,'\\SS-js\\localBrowser.js'), [fileURL]);
+        if(req.url !== '/file'){
+          fileURL = fileURL + req.url.replace('/file/', '');
+        } 
+          if(req.url.indexOf('.') >= 0){
+            const filePath = fileURLToPath(fileURL);
+            console.log(filePath);
+            res.sendFile(filePath);
+          } else {
+              await puppeteerChildProcess.send({
+                url: fileURL,
+                state: "alive",
+                requestState: "incomplete"
+              });
+              //Get the html response from the web site
+              let htmlContent = '';
+              await puppeteerChildProcess.on('message', async (response)=> {
+                  if(response.source === "pup")
+                    htmlContent = response.data;
+                    htmlContent = await String(htmlContent);
+                    let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
+                      htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
+                      templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
+                    await fs.writeFileSync('files/temp.html',templateFile);
+                    res.sendFile(path.join(__dirname, "\\files\\temp.html"));
+                  
+              });
+            console.log(fileURL +"::"+ puppeteerChildProcess.connected);
+          }
 });
 
 //Respones of a certain file type
