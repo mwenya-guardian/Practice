@@ -119,7 +119,6 @@ server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
 
->>>>>>> db6bdf7add5ed4865a27732b0001a8d1e78afdb3
 
 
 
