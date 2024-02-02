@@ -1,6 +1,7 @@
 node_modules/
 video/
 SS-js/
+files/temp.html
 req.js
 oldCode.js
 package.json
