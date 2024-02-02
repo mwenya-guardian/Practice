@@ -7,8 +7,8 @@ const path = require('path');
 const httpApp = express();
 const fs = require('fs');
 const app = express();
-const port = 3;
-const httpPort = 2;
+const port = 3001;
+const httpPort = 3000;
 
 //Access the https cetification and key
 const options = {
@@ -105,21 +105,8 @@ app.post('/find', (req, res) =>{
   let request = req.body;
   books.response = request;
   console.log("POSTED");
-  console.log(request);
   res.json(books);
 });
-
-//-------------------------------------
-//Redirecting http requests to https
-http.createServer(httpApp).listen(80, () =>{
-  console.log("Redirecting http requests to https");
-});
-//Listening to the port
-server.listen(port, ()=> {
-  console.log('REST API is listening at https://localhost:' + port);
-});
-
-
 
 
 //---------------------------------------------------------------------------------
@@ -150,7 +137,6 @@ app.delete('/books/:id', (req, res)=> {
   books = books.filter(book => book.id !== bookId);
   res.sendStatus(204);
 });
-
 
 
 //---------------------------------------------------------------------------------
