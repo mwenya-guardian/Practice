@@ -10,6 +10,10 @@ const app = express();
 const port = 3001;
 const httpPort = 3000;
 let puppeteerChildProcess = {};
+setTimeout(() => {
+  if(puppeteerChildProcess.connected == undefined)
+    puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
+}, 3000);
 //Access the https cetification and key
 const options = {
   key: fs.readFileSync('certification/key.pem'),
@@ -19,16 +23,8 @@ const options = {
 //Create an https encryted server
 const server = https.createServer(options, app);
 
-//Series file path access
-let currentPath = "C:";
-let initialPath = "MG-Movies-Series-New folder-My Teen Romantic Copmedy Went Wrong As I Expected-S2";
-  initialPath = initialPath.split("-");
-  initialPath.forEach(sub => {
-              currentPath = path.join(currentPath, sub);    
-              });
-
 //Prepares express to handle static files requests
-app.use("/S2", express.static(currentPath));
+app.use(express.static('public'));
 
 //Redirecting all the http request to the https server
 httpApp.get('*', (req, res) =>{
@@ -74,11 +70,9 @@ app.get('/file*', async (req, res) =>{
                 requestState: "incomplete"
               });
               //Get the html response from the web site
-              let htmlContent = '';
               await puppeteerChildProcess.on('message', async (response)=> {
-                  if(response.source === "pup")
-                    htmlContent = response.data;
-                    htmlContent = await String(htmlContent);
+                  //if(response.source === "pup")
+                    let htmlContent = response.data;
                     let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
                       htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
                       templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
