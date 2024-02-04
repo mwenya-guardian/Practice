@@ -6,14 +6,15 @@ const http = require('http');
 const path = require('path');
 const httpApp = express();
 const fs = require('fs');
+const { error } = require('console');
 const app = express();
 const port = 3001;
 const httpPort = 3000;
 let puppeteerChildProcess = {};
-setTimeout(() => {
+//setTimeout(() => {
   if(puppeteerChildProcess.connected == undefined)
     puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
-}, 3000);
+//}, 3000);
 //Access the https cetification and key
 const options = {
   key: fs.readFileSync('certification/key.pem'),
@@ -53,34 +54,46 @@ app.get('/style/back', (req, res)=> {
 });
 // Testing puppteer
 app.get('/file*', async (req, res) =>{
+  //console.log(res);
   let fileURL = 'file:///C://';
+    //Start puppeteer if not active
     if(!('connected' in puppeteerChildProcess))
-      puppeteerChildProcess = await fork(path.join(__dirname,'\\SS-js\\localBrowser.js'), [fileURL]);
+      puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'), [fileURL]);
+        //Create url to be sent to puppeteer
         if(req.url !== '/file'){
           fileURL = fileURL + req.url.replace('/file/', '');
         } 
+          //Handle file trancfer(sending) to the client
           if(req.url.indexOf('.') >= 0){
             const filePath = fileURLToPath(fileURL);
-            console.log(filePath);
+            console.log(filePath, '\n\n');
             res.sendFile(filePath);
           } else {
-              await puppeteerChildProcess.send({
+            console.log('Parent: Before sending to puppeteerChildProcess');
+              puppeteerChildProcess.send({
                 url: fileURL,
                 state: "alive",
                 requestState: "incomplete"
               });
+              console.log('Parent: After sending to puppeteerChildProcess');
               //Get the html response from the web site
-              await puppeteerChildProcess.on('message', async (response)=> {
-                  //if(response.source === "pup")
+              puppeteerChildProcess.on('message', (response)=> {
+                console.log('Parent: After receiving from child');
+                  if(!res.headersSent && response.source === "pup"){
                     let htmlContent = response.data;
+                    console.log('Parent: After getting htmlContent');
                     let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
+                    console.log('Parent: After reading transfer.html');
                       htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
                       templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
-                    await fs.writeFileSync('files/temp.html',templateFile);
+                      console.log('Parent: Before writing to temp');
+                    fs.writeFileSync('files/temp.html',templateFile);
+                    console.log('Parent: After writing to temp and before sending');
                     res.sendFile(path.join(__dirname, "\\files\\temp.html"));
-                  
+                    console.log('Parent: After sending \n\n');
+                  }
               });
-            console.log(fileURL +"::"+ puppeteerChildProcess.connected);
+            console.log(fileURL +"::"+ puppeteerChildProcess.connected + ":: app.get(file)-Done");
           }
 });
 
@@ -150,4 +163,15 @@ http.createServer(httpApp).listen(httpPort, () =>{
 //Listening to the port
 server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
+});
+//Graceful shutdown
+process.on('exit', (code) => {
+  fs.unlinkSync(path.join(__dirname, "\\files\\temp.html"), (error) => {
+    if(error){
+      console.log("Error: deleting failed");
+    } else {
+      console.log('Temp: Deleted');
+    }
+    console.log('Exit Code:', code);
+  });
 });

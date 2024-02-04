@@ -1,7 +1,10 @@
 node_modules/
 video/
-SS-js/
+SS-js/childData.json
+SS-js/createChildProcess.js
 files/temp.html
+reqq.js
+res.js
 req.js
 oldCode.js
 package.json
