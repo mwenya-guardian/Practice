@@ -164,14 +164,26 @@ http.createServer(httpApp).listen(httpPort, () =>{
 server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
-//Graceful shutdown
-process.on('exit', (code) => {
+
+//---------------------------------------------------------------------------------
+//Graceful shutdown function
+//---------------------------------------------------------------------------------
+function GracefulShutDown(){
   fs.unlinkSync(path.join(__dirname, "\\files\\temp.html"), (error) => {
     if(error){
-      console.log("Error: deleting failed");
+      console.error(`Error: deleting failed - ${error}`);
     } else {
-      console.log('Temp: Deleted');
-    }
+        console.log('Temp: Deleted');
+      }
+  });
+}
+//Graceful shutdown
+process.on('SIGINT', GracefulShutDown);
+process.on('SIGTERM', GracefulShutDown);
+/**
+ * //Graceful shutdown
+  process.on('exit', (code) => {
+    GracefulShutDown();
     console.log('Exit Code:', code);
   });
-});
+ */
