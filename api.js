@@ -1,37 +1,35 @@
 const { fork } = require('child_process');
 const express = require('express');
 const { fileURLToPath } = require('url');
+const bodyParser = require('body-parser');
 const https = require('https');
 const http = require('http');
 const path = require('path');
 const httpApp = express();
 const fs = require('fs');
-const { error } = require('console');
 const app = express();
 const port = 3001;
 const httpPort = 3000;
-let puppeteerChildProcess = {};
-//setTimeout(() => {
-  if(puppeteerChildProcess.connected == undefined)
-    puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
-//}, 3000);
+let puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
+
 //Access the https cetification and key
 const options = {
   key: fs.readFileSync('certification/key.pem'),
   cert: fs.readFileSync('certification/cert.pem'),
   passphrase: 'guardian1',
 }
+
 //Create an https encryted server
 const server = https.createServer(options, app);
-
-//Prepares express to handle static files requests
-app.use(express.static('public'));
 
 //Redirecting all the http request to the https server
 httpApp.get('*', (req, res) =>{
     res.redirect('https://' + String(req.headers.host).split(":")[0] +":" + port + req.url);
 });
 
+//---------------------------------------------------------------------------------
+//Handling get requests
+//---------------------------------------------------------------------------------
 //Home page
 app.get('/', (req, res)=> {
   const filePath = path.join(__dirname, "Web\\index.html");
@@ -50,6 +48,18 @@ app.get('/script', (req, res) => {
 //Background image
 app.get('/style/back', (req, res)=> {
   const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
+  res.sendFile(filePath);
+});
+app.get('/file*fscript', (req, res) => {
+  const filePath = path.join(__dirname, "files\\fscript.js");
+  res.sendFile(filePath);
+});
+app.get('/file*style', (req, res) => {
+  const filePath = path.join(__dirname, "files\\style.css");
+  res.sendFile(filePath);
+});
+app.get('/file*script', (req, res) => {
+  const filePath = path.join(__dirname, "files\\script.js");
   res.sendFile(filePath);
 });
 // Testing puppteer
@@ -99,21 +109,17 @@ app.get('/file*', async (req, res) =>{
 
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
-  let episode = parseInt(req.params.episode) + "";
-  if(parseInt(req.params.episode) == "00"){
+  if(parseInt(req.params.episode) == "00")
     res.sendFile("C:\\Users\\Lenovo\\Downloads\\videos\\Windows\\Microsoft Excel Tutorial for Beginners - Full Course.mp4");
-  }
-  else if(parseInt(req.params.episode) == 100){
+  else if(parseInt(req.params.episode) == 100)
     res.sendFile(path.join(__dirname, "video\\Trevor Noah Son of Patricia 1.mp4"));
-  } else{
-  episode = episode.length > 1? episode: ("0"+ episode);
-  episode += " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
-  const filePath = path.join(currentPath, episode);
-  res.sendFile(filePath);
-  }
 });
-app.use(express('body-parser'));
-app.use(express.json());
+
+//---------------------------------------------------------------------------------
+//Handling post requests
+//---------------------------------------------------------------------------------
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 //Post data retrieval
 app.post('/find', (req, res) =>{
   let request = req.body;

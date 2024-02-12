@@ -21,7 +21,7 @@ function postRequest(){
         result = await data.json();
         console.log('Data sent', result);
         document.getElementById("borders").innerHTML = "### Result: " 
-        + result.response.data + " ### "
+        + result.response + " ### "
       })
         .catch(error => {
           console.error('not sent', error);
