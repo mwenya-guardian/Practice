@@ -19,12 +19,14 @@ function addRow(name, url, isdir,
     url = url + "/";
     size = 0;
     size_string = "";
+    link.href = root + url;
   } else {
     link.draggable = "true";
     link.addEventListener("dragstart", onDragStart, false);
+    link.href = root + url + "?id=1";
   }
   link.innerText = name;
-  link.href = root + url;
+  
 
   file_cell.dataset.value = name;
   file_cell.appendChild(link);
@@ -129,10 +131,17 @@ function onLoad() {
 
 window.addEventListener('DOMContentLoaded', onLoad);
 
+loadTimeData.data = {
+  "header":"Index of LOCATION",
+  "headerDateModified":"Date modified",
+  "headerName":"Name","headerSize":"Size",
+  "language":"en","parentDirText":"[parent directory]",
+  "textdirection":"ltr"};
+
 //--------------------------------------------------------------
 //Update Header Function
 //--------------------------------------------------------------
-async function updateHeader(){
+function updateHeader(){
   let parentElement = document.getElementById("header");
   let urlPath = window.location.pathname;
   document.getElementById("home").setAttribute('href', window.location.protocol + "//" + window.location.host);
@@ -147,7 +156,14 @@ async function updateHeader(){
         tempPath = window.location.protocol + "//" + window.location.host + tempPath;
         newElement.setAttribute("href",tempPath);
         newElement.setAttribute("id",'' + id);
-        newElement.textContent = pathName;
-  await parentElement.appendChild(newElement);
+        newElement.textContent = replaceAll(pathName, "%20", " ");
+  parentElement.appendChild(newElement);
   }
 };
+//Replace string function
+function replaceAll(string, searchString, replaceString=""){
+  while(string.indexOf(searchString) >= 0){
+    string = string.replace(searchString, replaceString);
+  }
+  return string;
+}

@@ -1,15 +1,13 @@
 const puppeteer = require('puppeteer');
-  let runPuppeteer = async (url) => {
-    const browser = await puppeteer.launch({args: ['--ignore-certificate-errors'],});
+
+async function runPuppeteer(url){
+    const browser = await puppeteer.launch({args: ['--ignore-certificate-errors'],}).then((newBroswer)=>{
+      console.log("Browser has started");
+      return newBroswer;
+    });
     const page = await browser.newPage();
-      let state = "alive", requestState = "incomplete", minutes = 20;
-      let timeId = setTimeout(async () => {
-          await page.close();
-          await browser.close().then(() => {
-            console.log('Child: Closed Browser---');
-          });
-          console.log('Child: Closed---');
-        }, minutes * 60 * 1000);
+      let state = "alive", requestState = "incomplete", minutes = 0.1;
+      let timeId = setTimeout(timedShutdown, minutes * 60 * 1000);
     //Telling the parent process that puppeteer is ready
 
     //Get request
@@ -25,6 +23,7 @@ const puppeteer = require('puppeteer');
         //Get the html response from the web site
         await page.content().then(async (htmlContent) => {
           console.log('Child: After getting page content');
+
           //Send response
           process.send({
             data: htmlContent,
@@ -34,20 +33,33 @@ const puppeteer = require('puppeteer');
         });
           requestState = "complete";
           console.log( "Child: " + requestState + " :: "+ url);
-          clearTimeout(timeId);
-            timeId = setTimeout(async () => {
-              await page.close();
-              await browser.close().then(() => {
-                console.log('Child: Closed Browser---');
-              });
-              console.log('Child: Closed---');
-            }, minutes * 60 * 1000);
+            clearTimeout(timeId);
+            timeId = setTimeout(timedShutdown, minutes * 60 * 1000);
       }
-    });     
-  }
+    });
+async function timedShutdown(){
+  await page.close();
+    console.log('Child: Closed page ---');
+  await browser.close();
+    console.log('Child: Closed Browser ---');
+  process.exit(0);
+    }    
+}
 
   let url = process.argv[2];
     if(!url){
       url = 'file:///C://';
     }
-  runPuppeteer(url);
+
+runPuppeteer(url);
+
+//Graceful shutdown
+process.on('SIGTERM', (code, signal) => {
+  console.log('Exit Code(SIGTERM):', code, "signal:", signal);
+});
+process.on('SIGINT', (code, signal) => {
+  console.log('Exit Code(SIGINT):', code, "signal:", signal);
+});
+process.on('exit', (code) => {
+  console.log('Exit Code:', code);
+});

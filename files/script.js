@@ -67,12 +67,3 @@ class LoadTimeData{
   loadTimeData=new LoadTimeData;
   window.loadTimeData=loadTimeData;
   console.warn("crbug/1173575, non-JS module files deprecated.");
-loadTimeData.data = {
-  "header":"LOCATION",
-  "headerDateModified":"Date modified",
-  "headerName":"Name",
-  "headerSize":"Size",
-  "language":"en",
-  "parentDirText":"[parent directory]",
-  "textdirection":"ltr"
-};

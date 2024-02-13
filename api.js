@@ -64,21 +64,24 @@ app.get('/file*script', (req, res) => {
 });
 // Testing puppteer
 app.get('/file*', async (req, res) =>{
-  //console.log(res);
   let fileURL = 'file:///C://';
-    //Start puppeteer if not active
-    if(!('connected' in puppeteerChildProcess))
-      puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'), [fileURL]);
+  let isFile = parseInt(req.query.id);
+  
+    //Restart puppeteer if not active
+    if(puppeteerChildProcess == undefined){
+      puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
+      console.log(puppeteerChildProcess.connected, ":: Child process restarted");
+    }
         //Create url to be sent to puppeteer
         if(req.url !== '/file'){
           fileURL = fileURL + req.url.replace('/file/', '');
         } 
           //Handle file trancfer(sending) to the client
-          if(req.url.indexOf('.') >= 0){
+          if(isFile == 1){
             const filePath = fileURLToPath(fileURL);
             console.log(filePath, '\n\n');
             res.sendFile(filePath);
-          } else {
+          } else if(puppeteerChildProcess.channel != undefined){
             console.log('Parent: Before sending to puppeteerChildProcess');
               puppeteerChildProcess.send({
                 url: fileURL,
@@ -103,7 +106,10 @@ app.get('/file*', async (req, res) =>{
                     console.log('Parent: After sending \n\n');
                   }
               });
-            console.log(fileURL +"::"+ puppeteerChildProcess.connected + ":: app.get(file)-Done");
+            console.log(fileURL +" ::"+ puppeteerChildProcess.connected + ":: app.get(file)-Done");
+          }else {
+            res.status(404).send(`Apologies information can not be processed: ${puppeteerChildProcess.channel}`);
+            puppeteerChildProcess = undefined;
           }
 });
 
@@ -171,6 +177,22 @@ server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
 
+
+//---------------------------------------------------------------------------------
+//Graceful shutdown OF CHILD PRROCESS
+//---------------------------------------------------------------------------------
+puppeteerChildProcess.on('exit', (code, signal)=>{
+  puppeteerChildProcess = undefined;
+  if(code == 0){
+    console.info("Child terminated");
+  } else {
+    console.error("Child terminated unexpextedly code:", code, " signal:", signal);
+  }
+});
+puppeteerChildProcess.on('error', (err)=>{
+  puppeteerChildProcess = undefined;
+  console.error("Child terminated because of error:", err);
+});
 //---------------------------------------------------------------------------------
 //Graceful shutdown function
 //---------------------------------------------------------------------------------
