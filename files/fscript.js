@@ -12,6 +12,22 @@ function addRow(name, url, isdir,
   var file_cell = document.createElement("td");
   var link = document.createElement("a");
 
+  //Self added code
+  let button_row = document.createElement("tr");
+  let button_cell = document.createElement("td");
+  let form = document.createElement('form');
+  let input = document.createElement('input');
+  let button = document.createElement("input");
+
+  button_row.className = "hide";
+  form.method = "DELETE";
+  input.name = "url";
+  input.className = "hide";
+  button.type = "submit";
+  button.value = "DELETE";
+  button.className = "button";
+  //End of self added code
+
   link.className = isdir ? "icon dir" : "icon file";
 
   if (isdir) {
@@ -24,18 +40,35 @@ function addRow(name, url, isdir,
     link.draggable = "true";
     link.addEventListener("dragstart", onDragStart, false);
     link.href = root + url + "?id=1";
+    //SELF ADDED CODE
+    form.action = link.href.replace("file", "delete");;
+    input.value = url; //Self
+    //input.id = url;   //Self
+    button_row.id = url; //Self
+      form.appendChild(input);
+      form.appendChild(button);
+        button_cell.appendChild(form);
+          button_row.appendChild(button_cell);
+    //END OF SELF
   }
   link.innerText = name;
-  
 
+  
   file_cell.dataset.value = name;
   file_cell.appendChild(link);
 
   row.appendChild(file_cell);
-  row.appendChild(createCell(size, size_string));
-  row.appendChild(createCell(date_modified, date_modified_string));
+  let size_cell = createCell(size, size_string);
+  let date_cell = createCell(date_modified, date_modified_string);
+
+  size_cell.setAttribute("onclick", isdir? "":`show("${url}")`);//Self
+  date_cell.setAttribute("onclick", isdir? "":`show("${url}")`);//Self
+
+  row.appendChild(size_cell);
+  row.appendChild(date_cell);
 
   tbody.appendChild(row);
+  isdir? "":tbody.appendChild(button_row); //Self
 }
 
 function onDragStart(e) {
@@ -167,3 +200,20 @@ function replaceAll(string, searchString, replaceString=""){
   }
   return string;
 }
+//CSS manipulation
+function show(id){
+  if(document.getElementById(id).getAttribute('class') == 'show')
+    document.getElementById(id).setAttribute('class','hide');
+  else
+    document.getElementById(id).setAttribute('class','show');
+  console.log(id);
+}
+/**
+//JQuery test
+$(document).ready(function(){
+  $("p").hide();
+  $("tr").click(function(){
+    $(this).next().slideToggle(300);
+  });
+});
+**/

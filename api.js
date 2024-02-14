@@ -108,7 +108,8 @@ app.get('/file*', async (req, res) =>{
               });
             console.log(fileURL +" ::"+ puppeteerChildProcess.connected + ":: app.get(file)-Done");
           }else {
-            res.status(404).send(`Apologies information can not be processed: ${puppeteerChildProcess.channel}`);
+            res.status(404).send(`Apologies information can not be processed:` + 
+                `${puppeteerChildProcess.channel}\n`, '<h1>Please Try Refreshing The PAGE!!!</h1>');
             puppeteerChildProcess = undefined;
           }
 });
@@ -134,6 +135,23 @@ app.post('/find', (req, res) =>{
   res.json(books);
 });
 
+//---------------------------------------------------------------------------------
+//Handling delete requests
+//---------------------------------------------------------------------------------
+app.get('/delete*', (req, res)=>{
+  let fileURL = 'file:///C://';
+  let fileName = req.query.url;
+  fileURL = fileURL + req.url.replace('/delete/', '');
+  const filePath = fileURLToPath(fileURL);
+  console.log(filePath,"DELETED",'\n\n');
+  try{
+  fs.unlinkSync(filePath);
+  }catch(error){
+    console.error("Error:", error.message);
+  }finally{
+    res.redirect('back');
+  }
+});
 
 //---------------------------------------------------------------------------------
 //Previous api functions

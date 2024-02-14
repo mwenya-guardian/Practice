@@ -6,7 +6,7 @@ async function runPuppeteer(url){
       return newBroswer;
     });
     const page = await browser.newPage();
-      let state = "alive", requestState = "incomplete", minutes = 0.1;
+      let state = "alive", requestState = "incomplete", minutes = 10;
       let timeId = setTimeout(timedShutdown, minutes * 60 * 1000);
     //Telling the parent process that puppeteer is ready
 

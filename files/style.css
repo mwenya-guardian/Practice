@@ -56,3 +56,17 @@
     background-position: center center;
     background-size: contain;
   }
+  .button{
+    color: rgb(247, 252, 249);
+    background: transparent;
+    padding: 4px 10px;
+    border: 1px solid whitesmoke;
+    border-radius: 8px;
+    margin-top: 5px;
+  }
+  .hide{
+    display: none;
+  }
+  .show{
+    display:contents;
+  }
