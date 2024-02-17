@@ -2,6 +2,7 @@ const { fork } = require('child_process');
 const express = require('express');
 const { fileURLToPath } = require('url');
 const bodyParser = require('body-parser');
+const multer =  require('multer');
 const https = require('https');
 const http = require('http');
 const path = require('path');
@@ -10,6 +11,7 @@ const fs = require('fs');
 const app = express();
 const port = 3001;
 const httpPort = 3000;
+const upload = multer({dest: 'files/'});
 let puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
 
 //Access the https cetification and key
@@ -108,8 +110,8 @@ app.get('/file*', async (req, res) =>{
               });
             console.log(fileURL +" ::"+ puppeteerChildProcess.connected + ":: app.get(file)-Done");
           }else {
-            res.status(404).send(`Apologies information can not be processed:` + 
-                `${puppeteerChildProcess.channel}\n`, '<h1>Please Try Refreshing The PAGE!!!</h1>');
+            res.status(404);//.send(`Apologies information can not be processed:` + 
+               // `${puppeteerChildProcess.channel}\n`, '<h1>Please Try Refreshing The PAGE!!!</h1>');
             puppeteerChildProcess = undefined;
           }
 });
@@ -127,6 +129,34 @@ app.get('/videos/:episode', (req, res)=> {
 //---------------------------------------------------------------------------------
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+
+//Uploading file requests
+app.post('/upload*', upload.single('file'), (req, res)=>{
+  let file = req.file;
+  let fileURL = 'file:///C://', oldFilePath = path.join(__dirname + '\\files');
+  fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/', ''): fileURL;
+    let filePath = fileURLToPath(fileURL) + file.originalname;
+    //Move file to the correct directory
+    fs.copyFile(file.path, filePath, (err)=>{
+      if(err){
+        console.error('Error: File Not Saved-', filePath);
+        return res.status(500).send('Error saving file');
+      }
+    //Delete file from previous
+    fs.unlink(file.path, (err)=>{
+      if(err){
+        console.error('Error: File Saved But Something Went Wrong ):');
+        return res.status(500).send('Error: File Saved But Something Went Wrong ):' +
+        `<a href="https://${req.headers.host}${req.url.replace('upload', 'file')}">Back</a> </a>`
+        );
+      }
+    });
+      //File saved
+      res.send(`File: ${file.originalname} Saved - ` +
+               `<a href="https://${req.headers.host}${req.url.replace('upload', 'file')}">Back</a> </a>`);
+    });
+});
+
 //Post data retrieval
 app.post('/find', (req, res) =>{
   let request = req.body;

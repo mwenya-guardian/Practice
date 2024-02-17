@@ -59,10 +59,28 @@
   .button{
     color: rgb(247, 252, 249);
     background: transparent;
-    padding: 4px 10px;
+    padding: 4px 8px;
     border: 1px solid whitesmoke;
     border-radius: 8px;
     margin-top: 5px;
+  }
+
+  h2{
+    margin-bottom: 0;
+  }
+  .upload{
+    color: blueviolet;
+    margin: 5px;
+    padding-left: 5px;
+    text-decoration: underline;
+    text-shadow: slateblue;
+  }
+  .fileInput{
+    padding: 1px 0px;
+    border: 1px solid blueviolet;
+  }
+  #uploadform{
+    border: 1px solid blueviolet;
   }
   .hide{
     display: none;

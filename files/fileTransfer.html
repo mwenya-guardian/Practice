@@ -7,8 +7,14 @@
 <link href="style" rel="stylesheet">
 </head>
 <h1 id="header">Index of C:\\ </h1>
-<h2><a id="home">Home</a></h2>
-<div id="parentDirLinkBox" style="display:none">
+<div class="divclass">
+<h2><a id="home">Home</a><a class="upload" onclick='show("uploadform")'>Upload</a></h2>
+<form class="hide" id="uploadform" method="post" action="/upload" enctype="multipart/form-data">
+  <input class="button fileInput" name="file" type="file">
+  <input class="button" type="submit" value="Upload">
+</form>
+</div>
+<div id="parentDirLinkBox" style="display:none; margin-top: 8px;">
   <a id="parentDirLink" class="icon up">
     <span id="parentDirText">[parent directory]</span>
   </a>

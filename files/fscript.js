@@ -14,18 +14,21 @@ function addRow(name, url, isdir,
 
   //Self added code
   let button_row = document.createElement("tr");
-  let button_cell = document.createElement("td");
-  let form = document.createElement('form');
-  let input = document.createElement('input');
-  let button = document.createElement("input");
+  let upload_button_cell = document.createElement("td");
+  let upload_form = document.createElement('form');
+  let upload_input = document.createElement('input');
+  let upload_button = document.createElement('input');
+  
+    upload_form.enctype = "multipart/form-data";
+    upload_form.method = "POST";
+    upload_form.id = "file";
+    upload_input.type = "file";
+    upload_input.name = "file";
+    upload_button.type = "submit";
+    upload_button.value = "upload";
+    upload_button.name = isdir? "": url;
 
-  button_row.className = "hide";
-  form.method = "DELETE";
-  input.name = "url";
-  input.className = "hide";
-  button.type = "submit";
-  button.value = "DELETE";
-  button.className = "button";
+      //upload_form.appendChild();
   //End of self added code
 
   link.className = isdir ? "icon dir" : "icon file";
@@ -40,15 +43,22 @@ function addRow(name, url, isdir,
     link.draggable = "true";
     link.addEventListener("dragstart", onDragStart, false);
     link.href = root + url + "?id=1";
+
     //SELF ADDED CODE
-    form.action = link.href.replace("file", "delete");;
-    input.value = url; //Self
-    //input.id = url;   //Self
-    button_row.id = url; //Self
-      form.appendChild(input);
-      form.appendChild(button);
-        button_cell.appendChild(form);
-          button_row.appendChild(button_cell);
+    let delete_button_cell = document.createElement("td");
+    let delete_form = document.createElement('form');
+    let delete_button = document.createElement("input");
+      button_row.className = "hide";
+      delete_form.method = "DELETE";
+      delete_button.type = "submit";
+      delete_button.value = "DELETE";
+      delete_button.className = "button";
+      
+        delete_form.action = link.href.replace("file", "delete");
+        button_row.id = url;
+          delete_form.appendChild(delete_button);
+          delete_button_cell.appendChild(delete_form);
+          button_row.appendChild(delete_button_cell);
     //END OF SELF
   }
   link.innerText = name;
@@ -61,14 +71,14 @@ function addRow(name, url, isdir,
   let size_cell = createCell(size, size_string);
   let date_cell = createCell(date_modified, date_modified_string);
 
-  size_cell.setAttribute("onclick", isdir? "":`show("${url}")`);//Self
-  date_cell.setAttribute("onclick", isdir? "":`show("${url}")`);//Self
+  size_cell.setAttribute("onclick", `show("${url}")`);//Self
+  date_cell.setAttribute("onclick", `show("${url}")`);//Self
 
   row.appendChild(size_cell);
   row.appendChild(date_cell);
 
   tbody.appendChild(row);
-  isdir? "":tbody.appendChild(button_row); //Self
+  tbody.appendChild(button_row); //Self
 }
 
 function onDragStart(e) {
@@ -159,6 +169,7 @@ function onLoad() {
   addHandlers(document.getElementById('nameColumnHeader'), 0);
   addHandlers(document.getElementById('sizeColumnHeader'), 1);
   addHandlers(document.getElementById('dateColumnHeader'), 2);
+  document.getElementById("uploadform").action = window.location.href.replace('file','upload');
   updateHeader();
 }
 
@@ -189,7 +200,7 @@ function updateHeader(){
         tempPath = window.location.protocol + "//" + window.location.host + tempPath;
         newElement.setAttribute("href",tempPath);
         newElement.setAttribute("id",'' + id);
-        newElement.textContent = replaceAll(pathName, "%20", " ");
+        newElement.textContent = decodeURIComponent(pathName);
   parentElement.appendChild(newElement);
   }
 };
