@@ -3,7 +3,6 @@ const express = require('express');
 const { fileURLToPath } = require('url');
 const bodyParser = require('body-parser');
 const multer =  require('multer');
-const progressStream = require('progress-stream');
 const https = require('https');
 const http = require('http');
 const path = require('path');
@@ -30,48 +29,14 @@ httpApp.get('*', (req, res) =>{
     res.redirect('https://' + String(req.headers.host).split(":")[0] +":" + port + req.url);
 });
 
+//Serve static files
+app.use(express.static('files'));
+app.use(express.static('Web'));
+
 //---------------------------------------------------------------------------------
 //Handling get requests
 //---------------------------------------------------------------------------------
-//Home page
-app.get('/', (req, res)=> {
-  const filePath = path.join(__dirname, "Web\\index.html");
-  res.sendFile(filePath);
-});
-//CSS stylesheet
-app.get('/style', (req, res)=> {
-  const filePath = path.join(__dirname, "Web\\assets\\css\\style.css");
-   
-  res.sendFile(filePath);
-});
-//FrontEnd javascript
-app.get('/script', (req, res) => {
-  const filePath = path.join(__dirname, "Web\\assets\\js\\script.js");
-   
-  res.sendFile(filePath);
-});
-//Background image
-app.get('/style/back', (req, res)=> {
-  const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
-   
-  res.sendFile(filePath);
-});
-app.get('/file*fscript', (req, res) => {
-  const filePath = path.join(__dirname, "files\\fscript.js");
-   
-  res.sendFile(filePath);
-});
-app.get('/file*style', (req, res) => {
-  const filePath = path.join(__dirname, "files\\style.css");
-  
-  res.sendFile(filePath);
-});
-app.get('/file*script', (req, res) => {
-  const filePath = path.join(__dirname, "files\\script.js");
-   
-  res.sendFile(filePath);
-});
-// Testing puppteer
+//Using puppeteer to display and access PC files
 app.get('/file*', async (req, res) =>{
   let fileURL = 'file:///C://';
   let isFile = parseInt(req.query.id);
@@ -125,7 +90,7 @@ app.get('/file*', async (req, res) =>{
 
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
-  if(parseInt(req.params.episode) == "00")
+  if(req.params.episode == "00")
     res.sendFile("C:\\Users\\Lenovo\\Downloads\\videos\\Windows\\Microsoft Excel Tutorial for Beginners - Full Course.mp4");
   else if(parseInt(req.params.episode) == 100)
     res.sendFile(path.join(__dirname, "video\\Trevor Noah Son of Patricia 1.mp4"));
