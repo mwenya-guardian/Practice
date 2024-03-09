@@ -219,6 +219,51 @@ function show(id){
     document.getElementById(id).setAttribute('class','show');
   console.log(id);
 }
+//Update the progress Bar
+function updateProgress(event){
+  var progressBar = document.getElementById('progressBar');
+  var percetText = document.getElementById('progressPercent');
+  console.log('bar update called');
+  if(event.lengthComputable){
+    var percentComplete = (event.loaded/event.total) * 100;
+    progressBar.style.width = percentComplete + '%';
+    percetText.innerText = String(percentComplete).substring(0, 4) + '%';
+  }
+}
+//Upload the file
+function uploadFile(file){
+  var xhr = new XMLHttpRequest();
+  console.log('xhr Object Created');
+  var formData = new FormData();
+  formData.append('file', file);
+  xhr.upload.addEventListener('progress', updateProgress);
+  xhr.onload = function(){
+    if(xhr.status == 200){
+      window.location.href = window.location.href;
+    }
+  }
+  console.log('progress listener added');
+  xhr.open('POST', window.location.pathname.replace('file', 'upload'), true);
+  showProgressBar('block');
+  xhr.setRequestHeader('enctype', "multipart/form-data");
+  xhr.send(formData);
+  console.log('file sent');
+}
+//Show/hide the progress bar
+function showProgressBar(display){
+  var container = document.getElementById('progressContainer');
+  container.style.display = display;
+  console.log('Showed block');
+}
+//Add listener
+var uploadform = document.getElementById('uploadform');
+uploadform.addEventListener('submit', function(event){
+  event.preventDefault();
+  var fileInput = document.getElementById('fileInput');
+  console.log('Add Listener');
+  var file = fileInput.files[0];
+  uploadFile(file);
+});
 /**
 //JQuery test
 $(document).ready(function(){

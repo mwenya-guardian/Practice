@@ -1,8 +1,9 @@
-const { fork } = require('child_process');
+const { fork, spawn } = require('child_process');
 const express = require('express');
 const { fileURLToPath } = require('url');
 const bodyParser = require('body-parser');
 const multer =  require('multer');
+const progressStream = require('progress-stream');
 const https = require('https');
 const http = require('http');
 const path = require('path');
@@ -40,28 +41,34 @@ app.get('/', (req, res)=> {
 //CSS stylesheet
 app.get('/style', (req, res)=> {
   const filePath = path.join(__dirname, "Web\\assets\\css\\style.css");
+   
   res.sendFile(filePath);
 });
 //FrontEnd javascript
 app.get('/script', (req, res) => {
   const filePath = path.join(__dirname, "Web\\assets\\js\\script.js");
+   
   res.sendFile(filePath);
 });
 //Background image
 app.get('/style/back', (req, res)=> {
   const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
+   
   res.sendFile(filePath);
 });
 app.get('/file*fscript', (req, res) => {
   const filePath = path.join(__dirname, "files\\fscript.js");
+   
   res.sendFile(filePath);
 });
 app.get('/file*style', (req, res) => {
   const filePath = path.join(__dirname, "files\\style.css");
+  
   res.sendFile(filePath);
 });
 app.get('/file*script', (req, res) => {
   const filePath = path.join(__dirname, "files\\script.js");
+   
   res.sendFile(filePath);
 });
 // Testing puppteer
@@ -134,6 +141,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.post('/upload*', upload.single('file'), (req, res)=>{
   let file = req.file;
   let fileURL = 'file:///C://', oldFilePath = path.join(__dirname + '\\files');
+  //Get the path used to save the file on the intended directory
   fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/', ''): fileURL;
     let filePath = fileURLToPath(fileURL) + file.originalname;
     //Move file to the correct directory
@@ -151,10 +159,27 @@ app.post('/upload*', upload.single('file'), (req, res)=>{
         );
       }
     });
-      //File saved
-      res.send(`File: ${file.originalname} Saved - ` +
-               `<a href="https://${req.headers.host}${req.url.replace('upload', 'file')}">Back</a> </a>`);
+    res.sendStatus(200);
     });
+});
+
+//Middleware to emit progrss events during file upload
+app.use('/file*', (req, res, next) => {
+  const progress = progressStream({ length: req.headers['content-length'] });
+  
+  //Listen for 'progress' event
+  progress.on('progress', (progressData)=>{
+      console.log(`Uploaded ${progressData.transferred} bytes of ${progressData.length}`);
+  });
+
+  //Pipe the request stream through progress stream
+  req.pipe(progress);
+
+  //Pipe the progress stream back to the res stream
+  progress.pipe(res);
+
+  //Call next middle in the chain
+  next();
 });
 
 //Post data retrieval
