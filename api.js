@@ -163,30 +163,11 @@ app.post('/upload*', upload.single('file'), (req, res)=>{
     });
 });
 
-//Middleware to emit progrss events during file upload
-app.use('/file*', (req, res, next) => {
-  const progress = progressStream({ length: req.headers['content-length'] });
-  
-  //Listen for 'progress' event
-  progress.on('progress', (progressData)=>{
-      console.log(`Uploaded ${progressData.transferred} bytes of ${progressData.length}`);
-  });
-
-  //Pipe the request stream through progress stream
-  req.pipe(progress);
-
-  //Pipe the progress stream back to the res stream
-  progress.pipe(res);
-
-  //Call next middle in the chain
-  next();
-});
-
 //Post data retrieval
 app.post('/find', (req, res) =>{
   let request = req.body;
-  books.response = request;
-  console.log("POSTED");
+    books.response = request;
+    console.log("POSTED");
   res.json(books);
 });
 
@@ -196,47 +177,17 @@ app.post('/find', (req, res) =>{
 app.get('/delete*', (req, res)=>{
   let fileURL = 'file:///C://';
   let fileName = req.query.url;
-  fileURL = fileURL + req.url.replace('/delete/', '');
-  const filePath = fileURLToPath(fileURL);
-  console.log(filePath,"DELETED",'\n\n');
-  try{
-  fs.unlinkSync(filePath);
-  }catch(error){
-    console.error("Error:", error.message);
-  }finally{
-    res.redirect('back');
-  }
+    fileURL = fileURL + req.url.replace('/delete/', '');
+    const filePath = fileURLToPath(fileURL);
+    console.log(filePath,"DELETED",'\n\n');
+    try {
+      fs.unlinkSync(filePath);
+    } catch(error){
+        console.error("Error:", error.message);
+    } finally{
+        res.redirect('back');
+    }
 });
-
-//---------------------------------------------------------------------------------
-//Previous api functions
-//---------------------------------------------------------------------------------
-//Sample data
-let books = {
- data: {id: 1, title: "Book 1", author:"Author 1"},
- datat: {id: 1, title: "Book 1", author:"Author 1"}
-}
-//Json responses
-app.get('/books', (req, res)=> {
-  res.json(books);
-});
-app.post('/books', (req, res)=> {
-  const newBook = req.body;
-  books.push(newBook);
-  res.status(201).json(newBook);
-});
-app.put('/books/:id', (req, res) => {
-  const bookId =  parseInt(req.params.id);
-  const updateBook = req.body;
-  books = books.map(book=> book.id !== bookId? updateBook: book);
-    res.json(updateBook);
-});
-app.delete('/books/:id', (req, res)=> {
-  const bookId = parseInt(req.params.id);
-  books = books.filter(book => book.id !== bookId);
-  res.sendStatus(204);
-});
-
 
 //---------------------------------------------------------------------------------
 //Listening
@@ -245,7 +196,7 @@ app.delete('/books/:id', (req, res)=> {
 http.createServer(httpApp).listen(httpPort, () =>{
   console.log("Redirecting http requests to https");
 });
-//Listening to the port
+//Listening for https requests
 server.listen(port, ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
@@ -256,11 +207,11 @@ server.listen(port, ()=> {
 //---------------------------------------------------------------------------------
 puppeteerChildProcess.on('exit', (code, signal)=>{
   puppeteerChildProcess = undefined;
-  if(code == 0){
-    console.info("Child terminated");
-  } else {
-    console.error("Child terminated unexpextedly code:", code, " signal:", signal);
-  }
+    if(code == 0){
+      console.info("Child terminated");
+    } else {
+      console.error("Child terminated unexpextedly code:", code, " signal:", signal);
+      }
 });
 puppeteerChildProcess.on('error', (err)=>{
   puppeteerChildProcess = undefined;
@@ -281,10 +232,4 @@ function GracefulShutDown(){
 //Graceful shutdown
 process.on('SIGINT', GracefulShutDown);
 process.on('SIGTERM', GracefulShutDown);
-/**
- * //Graceful shutdown
-  process.on('exit', (code) => {
-    GracefulShutDown();
-    console.log('Exit Code:', code);
-  });
- */
+process.on('exit', GracefulShutDown);

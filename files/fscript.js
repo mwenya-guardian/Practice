@@ -219,6 +219,9 @@ function show(id){
     document.getElementById(id).setAttribute('class','show');
   console.log(id);
 }
+//---------------------------------------------------------------------
+//Handling file uploads and adding a progress listner to show progress
+//---------------------------------------------------------------------
 //Update the progress Bar
 function updateProgress(event){
   var progressBar = document.getElementById('progressBar');
@@ -234,18 +237,32 @@ function updateProgress(event){
 function uploadFile(file){
   var xhr = new XMLHttpRequest();
   console.log('xhr Object Created');
-  var formData = new FormData();
-  formData.append('file', file);
+    //Using the FormData object to send the file to overcome the file transfer size limit of XMLHttpRequest objects
+    var formData = new FormData();
+    formData.append('file', file);
+  //Adds a progress listener to the upload object and a callback functions for each update 
   xhr.upload.addEventListener('progress', updateProgress);
+  //Refreshes the page after the upload is complete
   xhr.onload = function(){
     if(xhr.status == 200){
       window.location.href = window.location.href;
     }
   }
+  //Called when upload fails
+  xhr.onerror = function(){
+  var progressBar = document.getElementById('progressBar');
+  var percetText = document.getElementById('progressPercent');
+    progressBar.style.backgroundColor = 'red';
+    percetText.innerText = 'EEROR: FILE NOT SENT';
+  }
   console.log('progress listener added');
+
+  //Sets the request type and url
   xhr.open('POST', window.location.pathname.replace('file', 'upload'), true);
-  showProgressBar('block');
+  //Necessary for file transfer
   xhr.setRequestHeader('enctype', "multipart/form-data");
+  showProgressBar('block');
+  //Send the file to be uploaded
   xhr.send(formData);
   console.log('file sent');
 }
