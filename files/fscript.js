@@ -100,10 +100,9 @@ function createCell(value, text) {
 function start(location) {
   var header = document.getElementById("header");
   header.innerText = header.innerText.replace("LOCATION", location);
-
-  document.getElementById("title").innerText = header.innerText;
-  updateHeader();
-}
+  //document.getElementById("title").innerText = header.innerText;
+  //updateHeader();
+};
 
 function onHasParentDirectory() {
   var box = document.getElementById("parentDirLinkBox");
@@ -169,6 +168,7 @@ function onLoad() {
   addHandlers(document.getElementById('nameColumnHeader'), 0);
   addHandlers(document.getElementById('sizeColumnHeader'), 1);
   addHandlers(document.getElementById('dateColumnHeader'), 2);
+  document.getElementById("displaytable").focus({preventScroll: false});
   document.getElementById("uploadform").action = window.location.href.replace('file','upload');
   updateHeader();
 }
@@ -195,11 +195,15 @@ function updateHeader(){
       for(let count = 0; count <= id; count++){
         tempPath += urlPath.split("/")[count] +  "/";
         pathName = urlPath.split("/")[id] + "\\";
-        //console.log( tempPath + ":::" + pathName + ":::" + urlPath.split("/") + ":::" + urlPath.split("/").length + ":::" + urlPath);
+        console.log( tempPath + "::" + pathName + "\n" + urlPath.split("/") + "\n" 
+                    + urlPath.split("/").length + "\n" + urlPath);
       }
         tempPath = window.location.protocol + "//" + window.location.host + tempPath;
         newElement.setAttribute("href",tempPath);
         newElement.setAttribute("id",'' + id);
+        if(pathName.length > 8){
+          pathName = pathName.slice(0, 8) + "...\\";
+        }
         newElement.textContent = decodeURIComponent(pathName);
   parentElement.appendChild(newElement);
   }
@@ -245,7 +249,7 @@ function uploadFile(file){
   //Refreshes the page after the upload is complete
   xhr.onload = function(){
     if(xhr.status == 200){
-      window.location.href = window.location.href;
+      window.location.reload;
     }
   }
   //Called when upload fails
@@ -253,7 +257,11 @@ function uploadFile(file){
   var progressBar = document.getElementById('progressBar');
   var percetText = document.getElementById('progressPercent');
     progressBar.style.backgroundColor = 'red';
-    percetText.innerText = 'EEROR: FILE NOT SENT';
+    percetText.innerText = 'EEROR: FILE NOT SENT - Access Error';
+    setTimeout(()=>{
+      window.location.href = window.location.href;
+    }, 1500);
+    
   }
   console.log('progress listener added');
 
@@ -279,7 +287,7 @@ uploadform.addEventListener('submit', function(event){
   var fileInput = document.getElementById('fileInput');
   console.log('Add Listener');
   var file = fileInput.files[0];
-  uploadFile(file);
+  fileInput.files.length > 0? uploadFile(file):null;
 });
 /**
 //JQuery test

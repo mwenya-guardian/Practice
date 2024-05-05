@@ -28,3 +28,37 @@ function postRequest(){
         });
     ;
 }
+//Get drive info
+function getDrives(){
+ fetch('/execute-command').then(response =>{
+    return response.json();
+  }).then(data =>{
+      let div = document.getElementById("Drive");
+      let drives = data.message;
+        drives = drives.split("\r\r\n");
+          //Remove un-drive elements
+          let drive = drives.filter((element)=>{
+            return String(element).indexOf(":") > 0? element:false;
+          });
+            //getting drive names
+            let driveName = [];
+              drive.forEach(element => {
+                element = String(element).split(":");
+                  if(element[1].length > 0)
+                    driveName.push(element[0]);
+              });
+            driveName.forEach(element=>{
+              let newButton = document.createElement("input");
+              let newLink = document.createElement("a");
+                newButton.className = "file";
+                newButton.type = "button";
+                newButton.value = "Drive:" + String(element);
+                newLink.href = "/file/";
+              newLink.appendChild(newButton);
+              div.appendChild(newLink);
+            });
+          console.log(driveName);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', getDrives);

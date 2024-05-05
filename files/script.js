@@ -66,4 +66,4 @@ class LoadTimeData{
   expect(!loadTimeData,"should only include this file once");
   loadTimeData=new LoadTimeData;
   window.loadTimeData=loadTimeData;
-  console.warn("crbug/1173575, non-JS module files deprecated.");
+  //console.warn("crbug/1173575, non-JS module files deprecated.");

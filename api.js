@@ -1,4 +1,4 @@
-const { fork, spawn } = require('child_process');
+const { fork, spawn, exec } = require('child_process');
 const express = require('express');
 const { fileURLToPath } = require('url');
 const bodyParser = require('body-parser');
@@ -11,7 +11,7 @@ const fs = require('fs');
 const app = express();
 const port = 3001;
 const httpPort = 3000;
-const upload = multer({dest: 'files/'});
+const upload = multer({dest: 'downloads/'});
 let puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
 
 //Access the https cetification and key
@@ -112,8 +112,16 @@ app.post('/upload*', upload.single('file'), (req, res)=>{
     //Move file to the correct directory
     fs.copyFile(file.path, filePath, (err)=>{
       if(err){
+        //Delete file
+        fs.unlink(file.path, (err)=>{
+          if(err){
+            console.error('Error: Could not be deleted ):');
+          }else{
+            console.log("Errored file has been delted!!!");
+          }
+        });
         console.error('Error: File Not Saved-', filePath);
-        return res.status(500).send('Error saving file');
+        return res.status(102).send('Error saving file');
       }
     //Delete file from previous
     fs.unlink(file.path, (err)=>{
@@ -126,6 +134,36 @@ app.post('/upload*', upload.single('file'), (req, res)=>{
     });
     res.sendStatus(200);
     });
+});
+
+//
+
+app.get('/execute-command', async (req, res) => {
+  const command = 'wmic';
+  const args = ['logicaldisk', 'get', 'caption,size', '/format:table'];
+  try {
+    const { stdout, stderr } = await executeCommand('wmic logicaldisk get caption,size /format:table');
+      if (stderr) {
+        console.error(`Command stderr: ${stderr}`);
+      }
+    res.send({message: stdout});
+  } catch (error) {
+      console.error(`Error executing command: ${error.message}`);
+        res.status(500).send('Internal Server Error');
+    }
+
+    // Promisified function to execute command
+    function executeCommand(command) {
+      return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve({ stdout, stderr });
+          }
+        });
+      });
+    }
 });
 
 //Post data retrieval

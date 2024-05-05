@@ -22,6 +22,7 @@
   a.icon {
     padding-inline-start: 1.5em;
     text-decoration: none;
+    -webkit-user-select: auto;
     user-select: auto;
   }
 
@@ -56,6 +57,24 @@
     background-position: center center;
     background-size: contain;
   }
+  /* Define a keyframe animation named 'glow' */
+  @keyframes glow {
+    0% {
+      box-shadow: 0 0 0 rgba(0, 0, 255, 0.5); /* Start with no glow */
+    }
+    50% {
+      box-shadow: 0 0 10px rgba(0, 0, 255, 0.8); /* Glow effect at 50% of animation */
+    }
+    100% {
+      box-shadow: 0 0 0 rgba(0, 0, 255, 0.5); /* End with no glow */
+    }
+  }
+
+  /* Apply animation to input when it is focused */
+  #displaytable:focus{
+    animation: glow 0.5s ease-in-out; /* Use the 'glow' animation for 0.5 seconds */
+  }
+
   .button{
     color: rgb(247, 252, 249);
     background: transparent;
@@ -63,6 +82,15 @@
     border: 1px solid whitesmoke;
     border-radius: 8px;
     margin-top: 5px;
+  }
+  .button:active{
+    transform: translateY(1px);
+    color:  rgb(177, 230, 198);
+    border-color:  rgb(106, 56, 172);
+  }
+  .button:hover{
+    color:  rgb(56, 172, 85);
+    border-color:  rgb(56, 172, 85);
   }
 
   h2{
