@@ -9,8 +9,8 @@ const path = require('path');
 const httpApp = express();
 const fs = require('fs');
 const app = express();
-const port = 3001;
-const httpPort = 3000;
+const port = process.argv[2]||3001;
+const httpPort = process.argv[3]||3000;
 const upload = multer({dest: 'downloads/'});
 let puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
 
@@ -37,8 +37,9 @@ app.use(express.static('Web'));
 //Handling get requests
 //---------------------------------------------------------------------------------
 //Using puppeteer to display and access PC files
-app.get('/file*', async (req, res) =>{
-  let fileURL = 'file:///C://';
+app.get('/file/:drive/*', async (req, res) =>{
+  let drive = req.params.drive;
+  let fileURL = 'file:///'+ drive +'://';
   let isFile = parseInt(req.query.id);
   
     //Restart puppeteer if not active
@@ -47,8 +48,8 @@ app.get('/file*', async (req, res) =>{
       console.log(puppeteerChildProcess.connected, ":: Child process restarted");
     }
         //Create url to be sent to puppeteer
-        if(req.url !== '/file'){
-          fileURL = fileURL + req.url.replace('/file/', '');
+        if(req.url !== '/file/'+ drive){
+          fileURL = fileURL + req.url.replace('/file/'+ drive +'/', '');
         } 
           //Handle file trancfer(sending) to the client
           if(isFile == 1){
@@ -103,11 +104,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 //Uploading file requests
-app.post('/upload*', upload.single('file'), (req, res)=>{
+app.post('/upload/:drive/*', upload.single('file'), (req, res)=>{
   let file = req.file;
-  let fileURL = 'file:///C://', oldFilePath = path.join(__dirname + '\\files');
+  let drive = req.params.drive;
+  let fileURL = 'file:///'+ drive + '://', oldFilePath = path.join(__dirname + '\\files');
   //Get the path used to save the file on the intended directory
-  fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/', ''): fileURL;
+  fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/'+ drive +'/', ''): fileURL;
     let filePath = fileURLToPath(fileURL) + file.originalname;
     //Move file to the correct directory
     fs.copyFile(file.path, filePath, (err)=>{
@@ -177,10 +179,10 @@ app.post('/find', (req, res) =>{
 //---------------------------------------------------------------------------------
 //Handling delete requests
 //---------------------------------------------------------------------------------
-app.get('/delete*', (req, res)=>{
-  let fileURL = 'file:///C://';
-  let fileName = req.query.url;
-    fileURL = fileURL + req.url.replace('/delete/', '');
+app.get('/delete/:drive/*', (req, res)=>{
+  let drive = req.params.drive;
+  let fileURL = 'file:///' + drive + '://';
+    fileURL = fileURL + req.url.replace('/delete/' + drive +'/', '');
     const filePath = fileURLToPath(fileURL);
     console.log(filePath,"DELETED",'\n\n');
     try {

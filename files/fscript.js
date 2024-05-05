@@ -180,7 +180,8 @@ loadTimeData.data = {
   "headerDateModified":"Date modified",
   "headerName":"Name","headerSize":"Size",
   "language":"en","parentDirText":"[parent directory]",
-  "textdirection":"ltr"};
+  "textdirection":"ltr"
+};
 
 //--------------------------------------------------------------
 //Update Header Function
@@ -249,7 +250,7 @@ function uploadFile(file){
   //Refreshes the page after the upload is complete
   xhr.onload = function(){
     if(xhr.status == 200){
-      window.location.reload;
+      window.location.href = window.location.href;
     }
   }
   //Called when upload fails

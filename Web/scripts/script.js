@@ -44,7 +44,7 @@ function getDrives(){
             let driveName = [];
               drive.forEach(element => {
                 element = String(element).split(":");
-                  if(element[1].length > 0)
+                  if(parseInt(element[1]))
                     driveName.push(element[0]);
               });
             driveName.forEach(element=>{
@@ -53,7 +53,7 @@ function getDrives(){
                 newButton.className = "file";
                 newButton.type = "button";
                 newButton.value = "Drive:" + String(element);
-                newLink.href = "/file/";
+                newLink.href = "/file/" + String(element) + '/';
               newLink.appendChild(newButton);
               div.appendChild(newLink);
             });
