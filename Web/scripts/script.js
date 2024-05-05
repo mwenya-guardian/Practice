@@ -60,5 +60,14 @@ function getDrives(){
           console.log(driveName);
   });
 }
-
 window.addEventListener('DOMContentLoaded', getDrives);
+
+function cmd(command){
+  let query = encodeURIComponent(command);
+  fetch(`/execute-command?cmd=${query}`).then(response=>{
+    return response.json();
+  }).then(data=>{
+      console.log(data.message);
+  });
+}
+//cmd("node api.js")

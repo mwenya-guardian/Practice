@@ -9,8 +9,8 @@ const path = require('path');
 const httpApp = express();
 const fs = require('fs');
 const app = express();
-const port = process.argv[2]||3001;
-const httpPort = process.argv[3]||3000;
+const port = process.argv[3]||3001;
+const httpPort = process.argv[2]||3000;
 const upload = multer({dest: 'downloads/'});
 let puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
 
@@ -141,10 +141,9 @@ app.post('/upload/:drive/*', upload.single('file'), (req, res)=>{
 //
 
 app.get('/execute-command', async (req, res) => {
-  const command = 'wmic';
-  const args = ['logicaldisk', 'get', 'caption,size', '/format:table'];
+  const command = req.query.cmd || 'wmic logicaldisk get caption,size /format:table';
   try {
-    const { stdout, stderr } = await executeCommand('wmic logicaldisk get caption,size /format:table');
+    const { stdout, stderr } = await executeCommand(command);
       if (stderr) {
         console.error(`Command stderr: ${stderr}`);
       }

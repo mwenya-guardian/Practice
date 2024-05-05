@@ -190,7 +190,7 @@ function updateHeader(){
   let parentElement = document.getElementById("header");
   let urlPath = window.location.pathname;
   document.getElementById("home").setAttribute('href', window.location.protocol + "//" + window.location.host);
-  for(let id = 1; id < urlPath.split("/").length -1; id++){
+  for(let id = 2; id < urlPath.split("/").length -1; id++){
      let newElement = document.createElement("a");
      let tempPath = '', pathName;
       for(let count = 0; count <= id; count++){
@@ -207,7 +207,7 @@ function updateHeader(){
         }
         newElement.textContent = decodeURIComponent(pathName);
   parentElement.appendChild(newElement);
-  }
+}
 };
 //Replace string function
 function replaceAll(string, searchString, replaceString=""){
