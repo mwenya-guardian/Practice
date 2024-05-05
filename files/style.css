@@ -144,3 +144,7 @@
     left: 25%;
     color: black;
   }
+  #parentDirLinkBox{
+    display:none; 
+    margin-top: 8px;
+  }

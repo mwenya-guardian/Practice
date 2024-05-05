@@ -41,12 +41,20 @@ input{
   border-radius: 30px;
 }
 .wrap{
+  color: rgb(2, 170, 100);
   width: 100%;
-  background: fixed rgb(2, 84, 99);
+  background: fixed rgba(5, 5, 5, 0.932);
   padding: 1px 1px;
   overflow: hidden;
   border: 2px solid lightblue;
-  border-radius: 30px;
+  border-radius: 10px;
+}
+.wrap #borders{
+  display: flex;
+}
+.wrap h1{
+  align-items: center;
+  justify-content: center;
 }
 .file{
   color: rgb(2, 170, 100);
@@ -56,8 +64,19 @@ input{
   border-radius: 8px;
   margin: 5px 2px;
 }
-fonts{
+.fonts{
   font-size: 100;
   font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   color: black;
+}
+#cmd{
+  color: rgba(214, 171, 91, 0.925);
+  border: none;
+  border-radius: 7px;
+  border-bottom: 1px solid white;
+  outline: none;
+  background: transparent;
+  background-color: transparent;
+  width: 400px;
+  height: 25px;
 }

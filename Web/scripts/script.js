@@ -62,11 +62,14 @@ function getDrives(){
 }
 window.addEventListener('DOMContentLoaded', getDrives);
 
-function cmd(command){
+function cmd(){
+  let command = document.getElementById("cmd").value;
   let query = encodeURIComponent(command);
   fetch(`/execute-command?cmd=${query}`).then(response=>{
     return response.json();
   }).then(data=>{
+    let textArea = document.getElementById("textArea");
+    textArea.innerText = data.message;
       console.log(data.message);
   });
 }
