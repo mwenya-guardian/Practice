@@ -71,6 +71,10 @@ function cmd(){
     let textArea = document.getElementById("textArea");
     textArea.innerText = data.message;
       console.log(data.message);
+  }).catch(err=>{
+    let textArea = document.getElementById("textArea");
+    textArea.innerText = "Error: Command not executed\n" + err;
+      console.log(err);
   });
 }
 //cmd("node api.js")
