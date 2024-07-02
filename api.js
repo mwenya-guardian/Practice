@@ -104,38 +104,41 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 //Uploading file requests
-app.post('/upload/:drive/*', upload.single('file'), (req, res)=>{
-  let file = req.file;
+app.post('/upload/:drive/*', upload.array('files'), (req, res)=>{
+  let files = req.files;
   let drive = req.params.drive;
   let fileURL = 'file:///'+ drive + '://', oldFilePath = path.join(__dirname + '\\files');
-  //Get the path used to save the file on the intended directory
-  fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/'+ drive +'/', ''): fileURL;
-    let filePath = fileURLToPath(fileURL) + file.originalname;
-    //Move file to the correct directory
-    fs.copyFile(file.path, filePath, (err)=>{
-      if(err){
-        //Delete file
-        fs.unlink(file.path, (err)=>{
+    //Get the path used to save the file on the intended directory
+    fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/'+ drive +'/', ''): fileURL;
+    //Transfer for each file
+    files.forEach(file => {
+      let filePath = fileURLToPath(fileURL) + file.originalname;
+        //Move file to the correct directory
+        fs.copyFile(file.path, filePath, (err)=>{
           if(err){
-            console.error('Error: Could not be deleted ):');
-          }else{
-            console.log("Errored file has been delted!!!");
-          }
-        });
-        console.error('Error: File Not Saved-', filePath);
+            //Delete file
+            fs.unlink(file.path, (err)=>{
+              if(err){
+                console.error('Error: Could not be deleted ):');
+              }else{
+                console.log("Errored file has been delted!!!");
+              }
+            });
+            console.error('Error: File Not Saved-', filePath);
         return res.status(102).send('Error saving file');
       }
-    //Delete file from previous
-    fs.unlink(file.path, (err)=>{
-      if(err){
-        console.error('Error: File Saved But Something Went Wrong ):');
-        return res.status(500).send('Error: File Saved But Something Went Wrong ):' +
-        `<a href="https://${req.headers.host}${req.url.replace('upload', 'file')}">Back</a> </a>`
-        );
-      }
+      //Delete file from previous
+      fs.unlink(file.path, (err)=>{
+        if(err){
+          console.error('Error: File Saved But Something Went Wrong ):');
+          return res.status(500).send('Error: File Saved But Something Went Wrong ):' +
+                                      `<a href="https://${req.headers.host}${req.url.replace('upload', 'file')}">Back</a> </a>`
+                                      );
+        }
+      });
     });
-    res.sendStatus(200);
-    });
+  });
+  res.sendStatus(200);
 });
 
 //

@@ -239,31 +239,33 @@ function updateProgress(event){
   }
 }
 //Upload the file
-function uploadFile(file){
+function uploadFile(files){
   var xhr = new XMLHttpRequest();
   console.log('xhr Object Created');
     //Using the FormData object to send the file to overcome the file transfer size limit of XMLHttpRequest objects
     var formData = new FormData();
-    formData.append('file', file);
-  //Adds a progress listener to the upload object and a callback functions for each update 
-  xhr.upload.addEventListener('progress', updateProgress);
-  //Refreshes the page after the upload is complete
-  xhr.onload = function(){
-    if(xhr.status == 200){
-      window.location.href = window.location.href;
+    for (var i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
     }
-  }
-  //Called when upload fails
-  xhr.onerror = function(){
-  var progressBar = document.getElementById('progressBar');
-  var percetText = document.getElementById('progressPercent');
-    progressBar.style.backgroundColor = 'red';
-    percetText.innerText = 'EEROR: FILE NOT SENT - Access Error';
-    setTimeout(()=>{
-      window.location.href = window.location.href;
-    }, 1500);
-    
-  }
+      //Adds a progress listener to the upload object and a callback functions for each update 
+      xhr.upload.addEventListener('progress', updateProgress);
+      //Refreshes the page after the upload is complete
+      xhr.onload = function(){
+        if(xhr.status == 200){
+          window.location.href = window.location.href;
+        }
+      }
+      //Called when upload fails
+      xhr.onerror = function(){
+        var progressBar = document.getElementById('progressBar');
+        var percetText = document.getElementById('progressPercent');
+          progressBar.style.backgroundColor = 'red';
+          percetText.innerText = 'EEROR: FILE NOT SENT - Access Error/Connection Error';
+          vibrateDevice();
+        setTimeout(()=>{
+          window.location.href = window.location.href;
+        }, 5000);
+      }
   console.log('progress listener added');
 
   //Sets the request type and url
@@ -273,7 +275,17 @@ function uploadFile(file){
   showProgressBar('block');
   //Send the file to be uploaded
   xhr.send(formData);
-  console.log('file sent');
+  console.log('sending file(s)');
+}
+function playErrorSound() {
+  var errorSound = document.getElementById('errorSound');
+  errorSound.play();
+}
+
+function vibrateDevice() {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(200); // Vibrate for 200 milliseconds
+  }
 }
 //Show/hide the progress bar
 function showProgressBar(display){
@@ -287,8 +299,8 @@ uploadform.addEventListener('submit', function(event){
   event.preventDefault();
   var fileInput = document.getElementById('fileInput');
   console.log('Add Listener');
-  var file = fileInput.files[0];
-  fileInput.files.length > 0? uploadFile(file):null;
+  //var file = fileInput.files;
+  fileInput.files.length > 0? uploadFile(fileInput.files):null;
 });
 /**
 //JQuery test
