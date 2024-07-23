@@ -9,16 +9,20 @@ const path = require('path');
 const httpApp = express();
 const fs = require('fs');
 const app = express();
-const port = process.argv[3]||3001;
-const httpPort = process.argv[2]||3000;
-const upload = multer({dest: 'downloads/'});
-let puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
+require('dotenv').config();
+const port = process.argv[3]||process.env.PORT;
+const httpPort = process.argv[2]||process.env.HTTP_PORT;
+const hostname = process.env.HOSTNAME;
+const localBrowser = process.env.BROWSER_PATH;
+// Configure multer for file uploads with size limits
+const upload = multer({dest: process.env.UPLOAD_PATH});
+let puppeteerChildProcess = fork(path.join(__dirname, localBrowser));
 
 //Access the https cetification and key
 const options = {
-  key: fs.readFileSync('certification/key.pem'),
-  cert: fs.readFileSync('certification/cert.pem'),
-  passphrase: 'guardian1',
+  key: fs.readFileSync(process.env.KEY_PATH),
+  cert: fs.readFileSync(process.env.CERT_PATH),
+  passphrase: String(fs.readFileSync(process.env.PASSPHRASE)),
 }
 
 //Create an https encryted server
@@ -36,6 +40,9 @@ app.use(express.static('Web'));
 //---------------------------------------------------------------------------------
 //Handling get requests
 //---------------------------------------------------------------------------------
+app.get('/upload-limit', (req, res) => {
+  res.json({ maxFileSize: upload.limits.fileSize });
+});
 //Using puppeteer to display and access PC files
 app.get('/file/:drive/*', async (req, res) =>{
   let drive = req.params.drive;
@@ -44,7 +51,7 @@ app.get('/file/:drive/*', async (req, res) =>{
   
     //Restart puppeteer if not active
     if(puppeteerChildProcess == undefined){
-      puppeteerChildProcess = fork(path.join(__dirname,'\\SS-js\\localBrowser.js'));
+      puppeteerChildProcess = fork(path.join(__dirname, localBrowser));
       console.log(puppeteerChildProcess.connected, ":: Child process restarted");
     }
         //Create url to be sent to puppeteer
@@ -70,15 +77,15 @@ app.get('/file/:drive/*', async (req, res) =>{
                   if(!res.headersSent && response.source === "pup"){
                     let htmlContent = response.data;
                     console.log('Parent: After getting htmlContent');
-                    let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
-                    console.log('Parent: After reading transfer.html');
-                      htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
-                      templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
-                      console.log('Parent: Before writing to temp');
+                      let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
+                      console.log('Parent: After reading transfer.html');
+                        htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
+                        templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
+                        console.log('Parent: Before writing to temp');
                     fs.writeFileSync('files/temp.html',templateFile);
                     console.log('Parent: After writing to temp and before sending');
-                    res.sendFile(path.join(__dirname, "\\files\\temp.html"));
-                    console.log('Parent: After sending \n\n');
+                      res.sendFile(path.join(__dirname, "\\files\\temp.html"));
+                      console.log('Parent: After sending \n\n');
                   }
               });
             console.log(fileURL +" ::"+ puppeteerChildProcess.connected + ":: app.get(file)-Done");
@@ -89,19 +96,45 @@ app.get('/file/:drive/*', async (req, res) =>{
           }
 });
 
-//Respones of a certain file type
-app.get('/videos/:episode', (req, res)=> {
-  if(req.params.episode == "00")
-    res.sendFile("C:\\Users\\Lenovo\\Downloads\\videos\\Windows\\Microsoft Excel Tutorial for Beginners - Full Course.mp4");
-  else if(parseInt(req.params.episode) == 100)
-    res.sendFile(path.join(__dirname, "video\\Trevor Noah Son of Patricia 1.mp4"));
+//Handling delete requests
+app.get('/delete/:drive/*', (req, res)=>{
+  let drive = req.params.drive;
+  let fileURL = 'file:///' + drive + '://';
+    fileURL = fileURL + req.url.replace('/delete/' + drive +'/', '');
+    const filePath = fileURLToPath(fileURL);
+    console.log(filePath,"DELETED",'\n\n');
+    try {
+      fs.unlinkSync(filePath);
+    } catch(error){
+        console.error("Error:", error.message);
+    } finally{
+        res.redirect('back');
+    }
 });
+//---------------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------------
 //Handling post requests
 //---------------------------------------------------------------------------------
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+// Error-handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error during file upload:', err);
+
+  // Delete any uploaded files if an error occurs
+  if (req.files) {
+    req.files.forEach(file => {
+      fs.unlink(file.path, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error('Failed to delete file:', file.path, unlinkErr);
+        }
+      });
+    });
+  }
+
+  res.status(500).send('An error occurred during the upload process. Files have been cleaned up.');
+});
 
 //Uploading file requests
 app.post('/upload/:drive/*', upload.array('files'), (req, res)=>{
@@ -111,7 +144,7 @@ app.post('/upload/:drive/*', upload.array('files'), (req, res)=>{
     //Get the path used to save the file on the intended directory
     fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/'+ drive +'/', ''): fileURL;
     //Transfer for each file
-    files.forEach(file => {
+     files.forEach(file => {
       let filePath = fileURLToPath(fileURL) + file.originalname;
         //Move file to the correct directory
         fs.copyFile(file.path, filePath, (err)=>{
@@ -141,8 +174,10 @@ app.post('/upload/:drive/*', upload.array('files'), (req, res)=>{
   res.sendStatus(200);
 });
 
-//
-
+//---------------------------------------------------------------------------------
+//Handling experimental requests
+//---------------------------------------------------------------------------------
+//CMD and drive specifics
 app.get('/execute-command', async (req, res) => {
   const command = req.query.cmd || 'wmic logicaldisk get caption,size /format:table';
   try {
@@ -170,6 +205,16 @@ app.get('/execute-command', async (req, res) => {
     }
 });
 
+
+//Respones of a certain file type
+app.get('/videos/:episode', (req, res)=> {
+  if(req.params.episode == "00")
+    res.sendFile("C:\\Users\\Lenovo\\Downloads\\videos\\Windows\\Microsoft Excel Tutorial for Beginners - Full Course.mp4");
+  else if(parseInt(req.params.episode) == 100)
+    res.sendFile(path.join(__dirname, "video\\Trevor Noah Son of Patricia 1.mp4"));
+});
+//---------------------------------------------------------------------------------
+
 //Post data retrieval
 app.post('/find', (req, res) =>{
   let request = req.body;
@@ -178,33 +223,17 @@ app.post('/find', (req, res) =>{
   res.json(books);
 });
 
-//---------------------------------------------------------------------------------
-//Handling delete requests
-//---------------------------------------------------------------------------------
-app.get('/delete/:drive/*', (req, res)=>{
-  let drive = req.params.drive;
-  let fileURL = 'file:///' + drive + '://';
-    fileURL = fileURL + req.url.replace('/delete/' + drive +'/', '');
-    const filePath = fileURLToPath(fileURL);
-    console.log(filePath,"DELETED",'\n\n');
-    try {
-      fs.unlinkSync(filePath);
-    } catch(error){
-        console.error("Error:", error.message);
-    } finally{
-        res.redirect('back');
-    }
-});
+
 
 //---------------------------------------------------------------------------------
 //Listening
 //---------------------------------------------------------------------------------
 //http-https Redirection
-http.createServer(httpApp).listen(httpPort, () =>{
+http.createServer(httpApp).listen(httpPort, hostname , () =>{
   console.log("Redirecting http requests to https");
 });
 //Listening for https requests
-server.listen(port, ()=> {
+server.listen(port, hostname , ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
 
