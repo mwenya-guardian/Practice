@@ -1,152 +1,271 @@
-const puppeteer = require('puppeteer');
+const { fork, spawn, exec } = require('child_process');
 const express = require('express');
 const { fileURLToPath } = require('url');
+const bodyParser = require('body-parser');
+const multer =  require('multer');
 const https = require('https');
 const http = require('http');
 const path = require('path');
 const httpApp = express();
 const fs = require('fs');
 const app = express();
-const port = 3001;
-const httpPort = 3000;
+require('dotenv').config();
+const port = process.argv[3]||process.env.PORT;
+const httpPort = process.argv[2]||process.env.HTTP_PORT;
+const hostname = process.env.HOSTNAME;
+const localBrowser = process.env.BROWSER_PATH;
+// Configure multer for file uploads with size limits
+const upload = multer({dest: process.env.UPLOAD_PATH});
+let puppeteerChildProcess = fork(path.join(__dirname, localBrowser));
 
 //Access the https cetification and key
 const options = {
-  key: fs.readFileSync('certification/key.pem'),
-  cert: fs.readFileSync('certification/cert.pem'),
-  passphrase: 'guardian1',
+  key: fs.readFileSync(process.env.KEY_PATH),
+  cert: fs.readFileSync(process.env.CERT_PATH),
+  passphrase: String(fs.readFileSync(process.env.PASSPHRASE)),
 }
+
 //Create an https encryted server
 const server = https.createServer(options, app);
-
-//Series file path access
-let currentPath = "C:";
-let initialPath = "MG-Movies-Series-New folder-My Teen Romantic Copmedy Went Wrong As I Expected-S2";
-  initialPath = initialPath.split("-");
-  initialPath.forEach(sub => {
-              currentPath = path.join(currentPath, sub);    
-              });
-
-//Prepares express to handle static files requests
-app.use("/S2", express.static(currentPath));
 
 //Redirecting all the http request to the https server
 httpApp.get('*', (req, res) =>{
     res.redirect('https://' + String(req.headers.host).split(":")[0] +":" + port + req.url);
 });
 
-//Home page
-app.get('/', (req, res)=> {
-  const filePath = path.join(__dirname, "Web\\index.html");
-  res.sendFile(filePath);
+//Serve static files
+app.use(express.static('files'));
+app.use(express.static('Web'));
+
+//---------------------------------------------------------------------------------
+//Handling get requests
+//---------------------------------------------------------------------------------
+app.get('/upload-limit', (req, res) => {
+  res.json({ maxFileSize: upload.limits.fileSize });
 });
-//CSS stylesheet
-app.get('/style', (req, res)=> {
-  const filePath = path.join(__dirname, "Web\\assets\\css\\style.css");
-  res.sendFile(filePath);
+//Using puppeteer to display and access PC files
+app.get('/file/:drive/*', async (req, res) =>{
+  let drive = req.params.drive;
+  let fileURL = 'file:///'+ drive +'://';
+  let isFile = parseInt(req.query.id);
+  
+    //Restart puppeteer if not active
+    if(puppeteerChildProcess == undefined){
+      puppeteerChildProcess = fork(path.join(__dirname, localBrowser));
+      console.log(puppeteerChildProcess.connected, ":: Child process restarted");
+    }
+        //Create url to be sent to puppeteer
+        if(req.url !== '/file/'+ drive){
+          fileURL = fileURL + req.url.replace('/file/'+ drive +'/', '');
+        } 
+          //Handle file trancfer(sending) to the client
+          if(isFile == 1){
+            const filePath = fileURLToPath(fileURL);
+            console.log(filePath, '\n\n');
+            res.sendFile(filePath);
+          } else if(puppeteerChildProcess.channel != undefined){
+            console.log('Parent: Before sending to puppeteerChildProcess');
+              puppeteerChildProcess.send({
+                url: fileURL,
+                state: "alive",
+                requestState: "incomplete"
+              });
+              console.log('Parent: After sending to puppeteerChildProcess');
+              //Get the html response from the web site
+              puppeteerChildProcess.on('message', (response)=> {
+                console.log('Parent: After receiving from child');
+                  if(!res.headersSent && response.source === "pup"){
+                    let htmlContent = response.data;
+                    console.log('Parent: After getting htmlContent');
+                      let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
+                      console.log('Parent: After reading transfer.html');
+                        htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
+                        templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
+                        console.log('Parent: Before writing to temp');
+                    fs.writeFileSync('files/temp.html',templateFile);
+                    console.log('Parent: After writing to temp and before sending');
+                      res.sendFile(path.join(__dirname, "\\files\\temp.html"));
+                      console.log('Parent: After sending \n\n');
+                  }
+              });
+            console.log(fileURL +" ::"+ puppeteerChildProcess.connected + ":: app.get(file)-Done");
+          }else {
+            res.status(404);//.send(`Apologies information can not be processed:` + 
+               // `${puppeteerChildProcess.channel}\n`, '<h1>Please Try Refreshing The PAGE!!!</h1>');
+            puppeteerChildProcess = undefined;
+          }
 });
-//FrontEnd javascript
-app.get('/script', (req, res) => {
-  const filePath = path.join(__dirname, "Web\\assets\\js\\script.js");
-  res.sendFile(filePath);
+
+//Handling delete requests
+app.get('/delete/:drive/*', (req, res)=>{
+  let drive = req.params.drive;
+  let fileURL = 'file:///' + drive + '://';
+    fileURL = fileURL + req.url.replace('/delete/' + drive +'/', '');
+    const filePath = fileURLToPath(fileURL);
+    console.log(filePath,"DELETED",'\n\n');
+    try {
+      fs.unlinkSync(filePath);
+    } catch(error){
+        console.error("Error:", error.message);
+    } finally{
+        res.redirect('back');
+    }
 });
-//Background image
-app.get('/style/back', (req, res)=> {
-  const filePath = path.join("C:\\Users\\Lenovo\\Downloads\\Walpapers", "webPage.jpg");
-  res.sendFile(filePath);
-});
-// Testing puppteer
-app.get('/file*', async (req, res) =>{
-    const browser = await puppeteer.launch({args: ['--ignore-certificate-errors'],});
-    const page = await browser.newPage();
-    let fileURL = 'file:///C://';
-      if(req.url !== '/file'){
-        fileURL = fileURL + req.url.replace('/file/', '');
-      } 
-        if(req.url.indexOf('.') >= 0){
-          const filePath = fileURLToPath(fileURL);
-          console.log(filePath);
-          res.sendFile(filePath);
-        } else{
-            await page.goto(fileURL);
-            //Get the html response from the web site
-            let htmlContent = await page.content();
-            let templateFile = fs.readFileSync('files/fileTransfer.html', 'utf-8');
-              htmlContent = htmlContent.slice(htmlContent.indexOf('<head>') + 6, htmlContent.lastIndexOf('</head>'));
-              templateFile = templateFile.slice(0, templateFile.indexOf('</body>')) + htmlContent + "</body></html>";
-            await fs.writeFileSync('files/temp.html',templateFile);
-            res.sendFile(path.join(__dirname, "\\files\\temp.html"));
-          console.log(fileURL);
+//---------------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------------
+//Handling post requests
+//---------------------------------------------------------------------------------
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+// Error-handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error during file upload:', err);
+
+  // Delete any uploaded files if an error occurs
+  if (req.files) {
+    req.files.forEach(file => {
+      fs.unlink(file.path, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error('Failed to delete file:', file.path, unlinkErr);
         }
-    //Close browser
-    await browser.close();
-    
+      });
+    });
+  }
+
+  res.status(500).send('An error occurred during the upload process. Files have been cleaned up.');
 });
+
+//Uploading file requests
+app.post('/upload/:drive/*', upload.array('files'), (req, res)=>{
+  let files = req.files;
+  let drive = req.params.drive;
+  let fileURL = 'file:///'+ drive + '://', oldFilePath = path.join(__dirname + '\\files');
+    //Get the path used to save the file on the intended directory
+    fileURL =  req.url !== '/upload'? fileURL + req.url.replace('/upload/'+ drive +'/', ''): fileURL;
+    //Transfer for each file
+     files.forEach(file => {
+      let filePath = fileURLToPath(fileURL) + file.originalname;
+        //Move file to the correct directory
+        fs.copyFile(file.path, filePath, (err)=>{
+          if(err){
+            //Delete file
+            fs.unlink(file.path, (err)=>{
+              if(err){
+                console.error('Error: Could not be deleted ):');
+              }else{
+                console.log("Errored file has been delted!!!");
+              }
+            });
+            console.error('Error: File Not Saved-', filePath);
+        return res.status(102).send('Error saving file');
+      }
+      //Delete file from previous
+      fs.unlink(file.path, (err)=>{
+        if(err){
+          console.error('Error: File Saved But Something Went Wrong ):');
+          return res.status(500).send('Error: File Saved But Something Went Wrong ):' +
+                                      `<a href="https://${req.headers.host}${req.url.replace('upload', 'file')}">Back</a> </a>`
+                                      );
+        }
+      });
+    });
+  });
+  res.sendStatus(200);
+});
+
+//---------------------------------------------------------------------------------
+//Handling experimental requests
+//---------------------------------------------------------------------------------
+//CMD and drive specifics
+app.get('/execute-command', async (req, res) => {
+  const command = req.query.cmd || 'wmic logicaldisk get caption,size /format:table';
+  try {
+    const { stdout, stderr } = await executeCommand(command);
+      if (stderr) {
+        console.error(`Command stderr: ${stderr}`);
+      }
+    res.send({message: stdout});
+  } catch (error) {
+      console.error(`Error executing command: ${error.message}`);
+        res.status(500).send('Internal Server Error');
+    }
+
+    // Promisified function to execute command
+    function executeCommand(command) {
+      return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve({ stdout, stderr });
+          }
+        });
+      });
+    }
+});
+
 
 //Respones of a certain file type
 app.get('/videos/:episode', (req, res)=> {
-  let episode = parseInt(req.params.episode) + "";
-  if(parseInt(req.params.episode) == "00"){
+  if(req.params.episode == "00")
     res.sendFile("C:\\Users\\Lenovo\\Downloads\\videos\\Windows\\Microsoft Excel Tutorial for Beginners - Full Course.mp4");
-  }
-  else if(parseInt(req.params.episode) == 100){
+  else if(parseInt(req.params.episode) == 100)
     res.sendFile(path.join(__dirname, "video\\Trevor Noah Son of Patricia 1.mp4"));
-  } else{
-  episode = episode.length > 1? episode: ("0"+ episode);
-  episode += " Yahari Ore no Seishun Love Come wa Machigatteiru.Zoku.mkv"
-  const filePath = path.join(currentPath, episode);
-  res.sendFile(filePath);
-  }
 });
-app.use(express('body-parser'));
-app.use(express.json());
+//---------------------------------------------------------------------------------
+
 //Post data retrieval
 app.post('/find', (req, res) =>{
   let request = req.body;
-  books.response = request;
-  console.log("POSTED");
+    books.response = request;
+    console.log("POSTED");
   res.json(books);
 });
 
-
-//---------------------------------------------------------------------------------
-//Previous api functions
-//---------------------------------------------------------------------------------
-//Sample data
-let books = {
- data: {id: 1, title: "Book 1", author:"Author 1"},
- datat: {id: 1, title: "Book 1", author:"Author 1"}
-}
-//Json responses
-app.get('/books', (req, res)=> {
-  res.json(books);
-});
-app.post('/books', (req, res)=> {
-  const newBook = req.body;
-  books.push(newBook);
-  res.status(201).json(newBook);
-});
-app.put('/books/:id', (req, res) => {
-  const bookId =  parseInt(req.params.id);
-  const updateBook = req.body;
-  books = books.map(book=> book.id !== bookId? updateBook: book);
-    res.json(updateBook);
-});
-app.delete('/books/:id', (req, res)=> {
-  const bookId = parseInt(req.params.id);
-  books = books.filter(book => book.id !== bookId);
-  res.sendStatus(204);
-});
 
 
 //---------------------------------------------------------------------------------
 //Listening
 //---------------------------------------------------------------------------------
 //http-https Redirection
-http.createServer(httpApp).listen(httpPort, () =>{
+http.createServer(httpApp).listen(httpPort, hostname , () =>{
   console.log("Redirecting http requests to https");
 });
-//Listening to the port
-server.listen(port, ()=> {
+//Listening for https requests
+server.listen(port, hostname , ()=> {
   console.log('REST API is listening at https://localhost:' + port);
 });
+
+
+//---------------------------------------------------------------------------------
+//Graceful shutdown OF CHILD PRROCESS
+//---------------------------------------------------------------------------------
+puppeteerChildProcess.on('exit', (code, signal)=>{
+  puppeteerChildProcess = undefined;
+    if(code == 0){
+      console.info("Child terminated");
+    } else {
+      console.error("Child terminated unexpextedly code:", code, " signal:", signal);
+      }
+});
+puppeteerChildProcess.on('error', (err)=>{
+  puppeteerChildProcess = undefined;
+  console.error("Child terminated because of error:", err);
+});
+//---------------------------------------------------------------------------------
+//Graceful shutdown function
+//---------------------------------------------------------------------------------
+function GracefulShutDown(){
+  fs.unlinkSync(path.join(__dirname, "\\files\\temp.html"), (error) => {
+    if(error){
+      console.error(`Error: deleting failed - ${error}`);
+    } else {
+        console.log('Temp: Deleted');
+      }
+  });
+}
+//Graceful shutdown
+process.on('SIGINT', GracefulShutDown);
+process.on('SIGTERM', GracefulShutDown);
+process.on('exit', GracefulShutDown);

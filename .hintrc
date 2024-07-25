@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "development"
+  ],
+  "hints": {
+    "axe/forms": [
+      "default",
+      {
+        "label": "off",
+        "backdrop-filter": "off"
+      }
+    ],
+    "meta-viewport": "off"
+  }
+}

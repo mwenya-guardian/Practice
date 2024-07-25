@@ -2,9 +2,9 @@
 <html lang="en">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style">
+  <link rel="stylesheet" href="/styles/style.css">
   <title>Hello</title>
-  <script src="script"> </script>
+  <script src="/scripts/script.js"> </script>
 
 <body>
 <header>
@@ -12,19 +12,18 @@
 </header>
   <div class="wrapper">
   <form> 
-    <label>Sort Numbers</label><br>
-      <input id="values" type="text"><br>
-    <label>Search Number</label><br>
-      <input id="target" type="text"><br>
-    <input type="submit" onclick="getVideo()"><br>
-      <a href="/file">
-        <input class="file" type="button" value="FILE">
-      </a>    
+    <h1>File Transfer</h1>
+    <div id="Drive"></div>   
   </form>
   </div>
-    <div class="wrap" id="borders"></div>
-    <div class="wrap" id="videos">
-      <p class ="fonts"> What is this::<a href="videos/100"> The Videos </a></p>
+    <div class="wrap" id="borders"><h1>Command Line</h1></div>
+    <div class="wrap" id="field">
+      <div>
+        <label>Terminal:</label>
+        <input type="text" id="cmd" on="cmd(this)">
+        <button class="file" onclick="cmd()">Run</button>
+      </div>
+    <div id="textArea"></div>
     </div>
 </body>
 </html>
