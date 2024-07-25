@@ -9,13 +9,14 @@ const path = require('path');
 const httpApp = express();
 const fs = require('fs');
 const app = express();
+//Set environment variables
 require('dotenv').config();
 const port = process.argv[3]||process.env.PORT;
 const httpPort = process.argv[2]||process.env.HTTP_PORT;
 const hostname = process.env.HOSTNAME;
 const localBrowser = process.env.BROWSER_PATH;
-// Configure multer for file uploads with size limits
-const upload = multer({dest: process.env.UPLOAD_PATH});
+const upload = multer({dest: process.env.UPLOAD_PATH}); // Configure multer for file uploads with size limits
+//Start puppeteer
 let puppeteerChildProcess = fork(path.join(__dirname, localBrowser));
 
 //Access the https cetification and key
@@ -40,9 +41,6 @@ app.use(express.static('Web'));
 //---------------------------------------------------------------------------------
 //Handling get requests
 //---------------------------------------------------------------------------------
-app.get('/upload-limit', (req, res) => {
-  res.json({ maxFileSize: upload.limits.fileSize });
-});
 //Using puppeteer to display and access PC files
 app.get('/file/:drive/*', async (req, res) =>{
   let drive = req.params.drive;
